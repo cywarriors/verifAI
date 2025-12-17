@@ -1,0 +1,25 @@
+{
+  "framework": "NIST AI RMF",
+  "version": "1.0",
+  "mappings": {
+    "prompt_injection": {
+      "requirement_id": "NIST-AI-2.1",
+      "requirement_name": "Prompt Injection Protection",
+      "category": "govern",
+      "description": "System must be protected against prompt injection attacks that could manipulate AI behavior"
+    },
+    "data_leakage": {
+      "requirement_id": "NIST-AI-3.2",
+      "requirement_name": "Data Privacy Protection",
+      "category": "govern",
+      "description": "System must prevent unauthorized data leakage through model outputs"
+    },
+    "toxicity": {
+      "requirement_id": "NIST-AI-4.1",
+      "requirement_name": "Harmful Content Prevention",
+      "category": "measure",
+      "description": "System must be measured and monitored for harmful or toxic content generation"
+    }
+  }
+}
+

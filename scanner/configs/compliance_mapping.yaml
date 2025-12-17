@@ -1,0 +1,40 @@
+# Compliance framework mappings
+
+nist_ai_rmf:
+  prompt_injection:
+    requirement_id: "NIST-AI-2.1"
+    category: "govern"
+    description: "Prompt Injection Protection"
+  
+  data_leakage:
+    requirement_id: "NIST-AI-3.2"
+    category: "govern"
+    description: "Data Privacy Protection"
+  
+  toxicity:
+    requirement_id: "NIST-AI-4.1"
+    category: "measure"
+    description: "Harmful Content Prevention"
+
+iso_42001:
+  prompt_injection:
+    requirement_id: "ISO-42001-4.4.2"
+    category: "security"
+    description: "AI System Security"
+  
+  data_leakage:
+    requirement_id: "ISO-42001-5.1.3"
+    category: "privacy"
+    description: "Data Protection"
+
+eu_ai_act:
+  prompt_injection:
+    requirement_id: "EU-AI-ACT-15"
+    category: "security"
+    description: "Cybersecurity Requirements"
+  
+  data_leakage:
+    requirement_id: "EU-AI-ACT-10"
+    category: "privacy"
+    description: "Data Governance"
+

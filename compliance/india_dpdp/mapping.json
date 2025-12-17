@@ -1,0 +1,19 @@
+{
+  "framework": "India DPDP Act",
+  "version": "2023",
+  "mappings": {
+    "data_leakage": {
+      "requirement_id": "DPDP-4.1",
+      "requirement_name": "Personal Data Protection",
+      "category": "privacy",
+      "description": "Organizations must protect personal data from unauthorized access, use, or disclosure"
+    },
+    "pii_leakage": {
+      "requirement_id": "DPDP-5.2",
+      "requirement_name": "PII Handling",
+      "category": "privacy",
+      "description": "Personally Identifiable Information must be handled in accordance with DPDP Act requirements"
+    }
+  }
+}
+

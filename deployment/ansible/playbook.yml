@@ -1,0 +1,16 @@
+---
+# Ansible playbook for on-premises deployment
+# Placeholder - add your deployment tasks here
+
+- name: Deploy LLM Security Scanner
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Update system packages
+      package:
+        name: "*"
+        state: latest
+    
+    # Add your deployment tasks here
+

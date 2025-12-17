@@ -1,0 +1,25 @@
+{
+  "framework": "Telecom/IoT Security",
+  "version": "1.0",
+  "mappings": {
+    "dhcp_injection": {
+      "requirement_id": "TELECOM-2.1",
+      "requirement_name": "Network Configuration Security",
+      "category": "network",
+      "description": "Network configuration protocols must be protected from injection attacks"
+    },
+    "tr069_prompt": {
+      "requirement_id": "TELECOM-3.2",
+      "requirement_name": "CPE Management Security",
+      "category": "management",
+      "description": "CPE WAN Management Protocol must be secured against unauthorized access"
+    },
+    "mqtt_abuse": {
+      "requirement_id": "TELECOM-4.1",
+      "requirement_name": "IoT Protocol Security",
+      "category": "protocol",
+      "description": "IoT messaging protocols must be protected from abuse and unauthorized access"
+    }
+  }
+}
+

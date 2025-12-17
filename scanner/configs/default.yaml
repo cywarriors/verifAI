@@ -1,0 +1,71 @@
+# Default scanner configuration
+
+scanner:
+  name: "LLM Security Scanner"
+  version: "1.0.0"
+  
+  # Probe execution settings
+  probes:
+    timeout: 30  # seconds
+    max_concurrent: 5
+    retry_attempts: 3
+    
+  # Model connection settings
+  model:
+    default_timeout: 30
+    max_retries: 3
+    rate_limit_per_minute: 60
+    
+  # Report settings
+  reports:
+    format: ["json", "pdf"]
+    include_evidence: true
+    include_remediation: true
+    
+  # Compliance settings
+  compliance:
+    enabled_frameworks:
+      - nist_ai_rmf
+      - iso_42001
+      - eu_ai_act
+    auto_map: true
+
+# Garak integration configuration
+garak:
+  enabled: true
+  timeout: 60  # seconds (longer than custom probes)
+  max_concurrent: 3  # Reduce for Garak (more resource intensive)
+  retry_attempts: 2
+  retry_delay: 1.0  # seconds
+  cache_enabled: true
+  cache_ttl: 3600  # seconds (1 hour)
+  rate_limit_per_minute: 60
+  circuit_breaker_threshold: 5  # Failures before opening circuit
+  circuit_breaker_timeout: 60  # Seconds before trying again
+
+# Counterfit integration configuration
+counterfit:
+  enabled: false
+  timeout: 60
+  max_concurrent: 2
+  retry_attempts: 1
+  retry_delay: 1.0
+  cache_enabled: true
+  cache_ttl: 3600
+  rate_limit_per_minute: 30
+  circuit_breaker_threshold: 5
+  circuit_breaker_timeout: 60
+
+# ART integration configuration
+art:
+  enabled: false
+  timeout: 60
+  max_concurrent: 2
+  retry_attempts: 1
+  retry_delay: 1.0
+  cache_enabled: true
+  cache_ttl: 3600
+  rate_limit_per_minute: 30
+  circuit_breaker_threshold: 5
+  circuit_breaker_timeout: 60
+

@@ -1,0 +1,25 @@
+# Model configuration profiles
+
+openai:
+  gpt-4:
+    max_tokens: 4096
+    temperature: 0.7
+    timeout: 30
+  
+  gpt-3.5-turbo:
+    max_tokens: 4096
+    temperature: 0.7
+    timeout: 30
+
+huggingface:
+  default:
+    max_length: 512
+    temperature: 0.7
+    timeout: 30
+
+local:
+  default:
+    device: "cpu"  # or "cuda"
+    max_length: 512
+    timeout: 60
+

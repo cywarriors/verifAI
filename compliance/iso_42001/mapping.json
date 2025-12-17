@@ -1,0 +1,25 @@
+{
+  "framework": "ISO/IEC 42001",
+  "version": "2023",
+  "mappings": {
+    "prompt_injection": {
+      "requirement_id": "ISO-42001-4.4.2",
+      "requirement_name": "AI System Security",
+      "category": "security",
+      "description": "AI system must implement security measures to prevent injection attacks"
+    },
+    "data_leakage": {
+      "requirement_id": "ISO-42001-5.1.3",
+      "requirement_name": "Data Protection",
+      "category": "privacy",
+      "description": "AI system must protect personal and sensitive data from unauthorized disclosure"
+    },
+    "toxicity": {
+      "requirement_id": "ISO-42001-4.3.1",
+      "requirement_name": "AI System Safety",
+      "category": "safety",
+      "description": "AI system must be designed to minimize safety risks and harmful outputs"
+    }
+  }
+}
+

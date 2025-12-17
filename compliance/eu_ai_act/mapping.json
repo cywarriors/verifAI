@@ -1,0 +1,25 @@
+{
+  "framework": "EU AI Act",
+  "version": "2024",
+  "mappings": {
+    "prompt_injection": {
+      "requirement_id": "EU-AI-ACT-15",
+      "requirement_name": "Cybersecurity Requirements",
+      "category": "security",
+      "description": "High-risk AI systems must meet cybersecurity requirements to prevent attacks"
+    },
+    "data_leakage": {
+      "requirement_id": "EU-AI-ACT-10",
+      "requirement_name": "Data Governance",
+      "category": "privacy",
+      "description": "AI systems must comply with data governance requirements and protect user data"
+    },
+    "toxicity": {
+      "requirement_id": "EU-AI-ACT-9",
+      "requirement_name": "Transparency and Human Oversight",
+      "category": "safety",
+      "description": "AI systems must ensure transparency and human oversight to prevent harmful outputs"
+    }
+  }
+}
+
