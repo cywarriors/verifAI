@@ -467,7 +467,7 @@ Use Garak for comprehensive coverage, custom probes for specific scenarios:
 
 ```python
 # Custom probes for domain-specific tests
-custom = scanner.probe_loader.list_probes(category="telecom")
+custom = scanner.probe_loader.list_probes(category="enterprise")
 
 # Garak for general security
 garak_general = garak.list_probes(category="injection")

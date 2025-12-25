@@ -2,6 +2,7 @@
 from app.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
 from app.core.utils import generate_scan_id, sanitize_model_config, validate_model_type
 from app.core.garak_runner import GarakRunner
+from app.core.art_runner import ARTRunner
 from app.core.sandbox import SandboxExecutor
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "sanitize_model_config",
     "validate_model_type",
     "GarakRunner",
+    "ARTRunner",
     "SandboxExecutor"
 ]

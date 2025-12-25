@@ -55,13 +55,38 @@ class ModelConnector:
             # HuggingFace models use transformers
             try:
                 from transformers import pipeline
-                self.client = pipeline(
-                    "text-generation",
-                    model=self.model_name,
-                    device=self.model_config.get("device", "cpu")
-                )
+                try:
+                    # Try to initialize the pipeline - this may fail for invalid model names
+                    self.client = pipeline(
+                        "text-generation",
+                        model=self.model_name,
+                        device=self.model_config.get("device", "cpu"),
+                        return_full_text=False  # Only return generated text, not input
+                    )
+                    logger.info(f"HuggingFace model '{self.model_name}' initialized successfully")
+                except (OSError, ValueError, Exception) as e:
+                    error_msg = str(e)
+                    if "not a valid model identifier" in error_msg or "Repository Not Found" in error_msg:
+                        raise ValueError(
+                            f"Invalid HuggingFace model name: '{self.model_name}'. "
+                            f"Please check that the model exists on HuggingFace Hub. "
+                            f"Error: {error_msg}"
+                        )
+                    elif "authentication" in error_msg.lower() or "401" in error_msg:
+                        raise ValueError(
+                            f"Authentication required for HuggingFace model '{self.model_name}'. "
+                            f"Please provide a HuggingFace token in model_config with key 'hf_token' or 'huggingface_token'"
+                        )
+                    else:
+                        raise ValueError(
+                            f"Failed to load HuggingFace model '{self.model_name}': {error_msg}"
+                        )
             except ImportError:
                 logger.warning("Transformers library not installed")
+                raise ValueError(
+                    "Transformers library is required for HuggingFace models. "
+                    "Install with: pip install transformers"
+                )
         
         elif self.model_type == "local":
             # Local model - could be Ollama, local server, etc.

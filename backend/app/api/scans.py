@@ -22,27 +22,49 @@ async def create_scan(
     db: Session = Depends(get_db)
 ):
     """Create a new scan"""
-    # Create scan record
-    scan = Scan(
-        name=scan_data.name,
-        description=scan_data.description,
-        scanner_type=scan_data.scanner_type,
-        model_name=scan_data.model_name,
-        model_type=scan_data.model_type,
-        model_config=scan_data.llm_config.model_dump() if scan_data.llm_config else {},
-        status=ScanStatus.PENDING,
-        created_by=current_user.id
-    )
-    
-    db.add(scan)
-    db.commit()
-    db.refresh(scan)
-    
-    # Execute scan in background
-    orchestrator = ScanOrchestrator(db)
-    background_tasks.add_task(orchestrator.execute_scan, scan.id)
-    
-    return scan
+    try:
+        # Create scan record
+        scan = Scan(
+            name=scan_data.name,
+            description=scan_data.description,
+            scanner_type=scan_data.scanner_type,
+            model_name=scan_data.model_name,
+            model_type=scan_data.model_type,
+            model_config=scan_data.llm_config.model_dump() if scan_data.llm_config else {},
+            status=ScanStatus.PENDING,
+            created_by=current_user.id
+        )
+        
+        db.add(scan)
+        db.commit()
+        db.refresh(scan)
+        
+        # Execute scan in background (create new DB session for background task)
+        async def run_scan_background(scan_id: int):
+            """Background task wrapper that creates its own DB session"""
+            from app.db.session import SessionLocal
+            
+            db_session = SessionLocal()
+            try:
+                orchestrator = ScanOrchestrator(db_session)
+                await orchestrator.execute_scan(scan_id)
+            except Exception as e:
+                # Log error but don't raise - scan status will be set to FAILED
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Background scan task failed for scan {scan_id}: {e}", exc_info=True)
+            finally:
+                db_session.close()
+        
+        background_tasks.add_task(run_scan_background, scan.id)
+        
+        return scan
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create scan: {str(e)}"
+        )
 
 
 @router.get("/", response_model=List[ScanResponse])

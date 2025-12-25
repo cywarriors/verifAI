@@ -28,8 +28,7 @@ scanner/
 │   └── compliance_mapping.yaml
 └── probes/                 # Security probes
     ├── enterprise/
-    ├── rag/
-    └── telecom/
+    └── rag/
 ```
 
 ## Usage

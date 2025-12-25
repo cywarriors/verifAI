@@ -44,6 +44,8 @@ class ScannerType(str, PyEnum):
 
     BUILTIN = "builtin"          # Only first-party probes in this repo
     GARAK = "garak"              # Garak integration
+    LLMTOP10 = "llmtopten"       # LLMTopTen OWASP LLM Top 10 scanner
+    AGENTTOP10 = "agenttopten"   # AgentTopTen OWASP Agentic AI Top 10 scanner
     COUNTERFIT = "counterfit"    # Azure Counterfit (optional)
     ART = "art"                  # Adversarial Robustness Toolbox (optional)
     ALL = "all"                  # Combined where applicable

@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from garak.garak_config import GarakConfig
-from garak.garak_metrics import GarakMetrics
+from scanner.garak.garak_config import GarakConfig
+from scanner.garak.garak_metrics import GarakMetrics
 
 
 def test_garak_config_defaults_and_env_override(tmp_path: Path, monkeypatch):

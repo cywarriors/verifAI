@@ -1,7 +1,7 @@
 # Core Framework
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
-pydantic>=2.10.0
+pydantic[email]>=2.10.0
 pydantic-settings>=2.6.0
 
 # Database
@@ -42,3 +42,12 @@ gunicorn>=23.0.0
 garak>=0.9.0
 openai>=1.0.0
 anthropic>=0.18.0
+
+# External Security Scanners
+adversarial-robustness-toolbox>=1.18.0
+
+# Counterfit - Optional, has dependency conflicts with Python 3.12
+# Install manually if needed (may require Python 3.10 or 3.11):
+#   pip install "git+https://github.com/Azure/counterfit.git#egg=counterfit[dev]"
+# Note: Counterfit requires numpy==1.19.3 which may not work with newer Python versions
+# See: https://github.com/Azure/counterfit

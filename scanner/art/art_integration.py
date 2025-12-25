@@ -267,11 +267,82 @@ class ARTIntegration(ExternalScanner):
                 "to use ART with this model."
             )
 
-        raise RuntimeError(
-            f"ART execution hook not implemented for estimator={estimator_name}, "
-            f"attack={attack_name}. Implement project-specific logic in "
-            "ARTIntegration._execute_art_probe."
-        )
+        # Basic ART execution implementation
+        # This provides a working structure that can be extended
+        try:
+            import art
+            from art.estimators.classification import ClassifierMixin
+            from art.attacks.evasion import EvasionAttack
+            
+            # Get estimator from model config or create a basic one
+            # ART requires a properly configured estimator
+            estimator = model_config.get("art_estimator_instance")
+            
+            if estimator is None:
+                # Try to create a basic estimator from model config
+                # This is a simplified approach - real implementations need proper estimator setup
+                logger.warning(
+                    f"ART estimator instance not provided in model_config. "
+                    f"Using estimator name '{estimator_name}' to look up or create estimator."
+                )
+                
+                # For LLM models, ART typically requires custom estimators
+                # This is a placeholder that shows the structure
+                raise RuntimeError(
+                    f"ART estimator '{estimator_name}' not configured. "
+                    "ART requires a properly configured estimator instance. "
+                    "Set 'art_estimator_instance' in model_config with a valid ART estimator."
+                )
+            
+            # Get attack class from ART
+            attack_class = None
+            try:
+                # Try common attack imports
+                if attack_name.lower() == "fgsm":
+                    from art.attacks.evasion import FastGradientMethod
+                    attack_class = FastGradientMethod
+                elif attack_name.lower() == "pgd":
+                    from art.attacks.evasion import ProjectedGradientDescent
+                    attack_class = ProjectedGradientDescent
+                elif attack_name.lower() == "carlini":
+                    from art.attacks.evasion import CarliniL2Method
+                    attack_class = CarliniL2Method
+                else:
+                    # Try to dynamically import
+                    attack_module = getattr(art.attacks.evasion, attack_name, None)
+                    if attack_module:
+                        attack_class = attack_module
+            except (ImportError, AttributeError):
+                pass
+            
+            if attack_class is None:
+                raise RuntimeError(
+                    f"ART attack '{attack_name}' not found or not supported. "
+                    "Common attacks: FGSM, PGD, CarliniL2Method"
+                )
+            
+            # Create and run attack
+            attack = attack_class(estimator=estimator)
+            result = attack.generate(x=model_config.get("test_data", []))
+            
+            return {
+                "attack_name": attack_name,
+                "estimator_name": estimator_name,
+                "adversarial_examples": result.tolist() if hasattr(result, 'tolist') else str(result),
+                "success": True
+            }
+            
+        except ImportError:
+            raise RuntimeError(
+                "ART library not properly installed. "
+                "Install with: pip install adversarial-robustness-toolbox"
+            )
+        except Exception as e:
+            logger.error(f"ART execution failed: {e}", exc_info=True)
+            raise RuntimeError(
+                f"ART execution failed for estimator={estimator_name}, "
+                f"attack={attack_name}: {str(e)}"
+            )
 
     def _parse_art_results(self, art_result: Any, probe_name: str) -> Dict[str, Any]:
         """Parse ART results into normalized format."""

@@ -118,12 +118,33 @@ class ScanOrchestrator:
             # Generate compliance mappings
             await self.compliance_engine.map_vulnerabilities_to_compliance(scan_id)
             
-        except Exception as e:
+        except ValueError as e:
+            # Model validation or configuration errors
+            error_msg = str(e)
             scan.status = ScanStatus.FAILED
             scan.completed_at = datetime.utcnow()
-            scan.results = {"error": str(e)}
+            scan.results = {
+                "error": error_msg,
+                "error_type": "model_initialization",
+                "suggestion": "Please verify the model name and configuration are correct"
+            }
             self.db.commit()
-            raise
+            logger.error(f"Scan {scan_id} failed due to model error: {error_msg}")
+            # Don't re-raise - scan is marked as failed
+            return
+        except Exception as e:
+            # Other unexpected errors
+            error_msg = str(e)
+            scan.status = ScanStatus.FAILED
+            scan.completed_at = datetime.utcnow()
+            scan.results = {
+                "error": error_msg,
+                "error_type": "scan_execution",
+            }
+            self.db.commit()
+            logger.error(f"Scan {scan_id} failed: {error_msg}", exc_info=True)
+            # Don't re-raise - scan is marked as failed
+            return
     
     async def _run_probes(self, scan: Scan) -> List[Dict[str, Any]]:
         """Run security probes against the model"""
@@ -153,17 +174,38 @@ class ScanOrchestrator:
         vulnerabilities: List[Dict[str, Any]] = []
 
         try:
-            # Initialize scanner
-            scanner = ScannerEngine()
-            scanner.set_model(
-                model_name=scan.model_name,
-                model_type=scan.model_type,
-                model_config=scan.model_config or {},
-            )
+            # Initialize scanner with explicit config path
+            # Ensure we use the scanner config directory
+            scanner_config_path = Path(__file__).parent.parent.parent.parent / "scanner" / "configs" / "default.yaml"
+            scanner = ScannerEngine(config_path=scanner_config_path)
+            
+            # Validate and set model with better error handling
+            try:
+                scanner.set_model(
+                    model_name=scan.model_name,
+                    model_type=scan.model_type,
+                    model_config=scan.model_config or {},
+                )
+            except ValueError as model_error:
+                # Model validation/initialization error
+                error_msg = str(model_error)
+                logger.error(f"Model initialization failed: {error_msg}")
+                raise ValueError(
+                    f"Failed to initialize model '{scan.model_name}' ({scan.model_type}): {error_msg}"
+                )
+            except Exception as model_error:
+                # Other model errors
+                error_msg = str(model_error)
+                logger.error(f"Model initialization error: {error_msg}", exc_info=True)
+                raise ValueError(
+                    f"Model initialization error for '{scan.model_name}': {error_msg}"
+                )
 
             scanner_type = getattr(scan, "scanner_type", ScannerType.BUILTIN)
 
             # Determine which probes and engine to use
+            include_llmtopten = False
+            include_agenttopten = False
             if scanner_type == ScannerType.BUILTIN:
                 available_probes = scanner.probe_loader.list_probes()
                 include_garak = False
@@ -173,11 +215,41 @@ class ScanOrchestrator:
                     return await self._run_probes_simulation(scan)
                 available_probes = scanner.garak.list_probes()
                 include_garak = True
+            elif scanner_type == ScannerType.LLMTOP10:
+                if not scanner.llmtopten:
+                    logger.warning(
+                        "LLMTopTen scanner requested but not available; using simulation. "
+                        "Check if LLMTopTen integration initialized successfully in scanner engine."
+                    )
+                    if hasattr(scanner, 'llmtopten') and scanner.llmtopten is None:
+                        logger.debug("Scanner.llmtopten is None - check initialization logs")
+                    return await self._run_probes_simulation(scan)
+                available_probes = scanner.llmtopten.list_probes()
+                include_llmtopten = True
+                include_garak = False
+            elif scanner_type == ScannerType.AGENTTOP10:
+                if not scanner.agenttopten:
+                    logger.warning(
+                        "AgentTopTen scanner requested but not available; using simulation. "
+                        "Check if AgentTopTen integration initialized successfully in scanner engine."
+                    )
+                    if hasattr(scanner, 'agenttopten') and scanner.agenttopten is None:
+                        logger.debug("Scanner.agenttopten is None - check initialization logs")
+                    return await self._run_probes_simulation(scan)
+                available_probes = scanner.agenttopten.list_probes()
+                include_agenttopten = True
+                include_garak = False
             elif scanner_type == ScannerType.ALL:
                 available_probes = scanner.probe_loader.list_probes()
                 if scanner.garak:
                     available_probes.extend(scanner.garak.list_probes())
+                if scanner.llmtopten:
+                    available_probes.extend(scanner.llmtopten.list_probes())
+                if scanner.agenttopten:
+                    available_probes.extend(scanner.agenttopten.list_probes())
                 include_garak = True
+                include_llmtopten = True
+                include_agenttopten = True
             elif scanner_type in (ScannerType.COUNTERFIT, ScannerType.ART):
                 ext = scanner.external_scanners.get(scanner_type.value)
                 if not ext:
@@ -259,10 +331,12 @@ class ScanOrchestrator:
             total_probes = len(available_probes)
             completed = 0
 
-            # Run scan using ScannerEngine (handles builtin + Garak)
+            # Run scan using ScannerEngine (handles builtin + Garak + LLMTopTen + AgentTopTen)
             scan_results = await scanner.run_scan(
                 probe_names=available_probes,
                 include_garak=include_garak,
+                include_llmtopten=include_llmtopten,
+                include_agenttopten=include_agenttopten,
             )
             
             # Process results
@@ -326,7 +400,6 @@ class ScanOrchestrator:
             ("Prompt Injection", ["direct_injection", "indirect_injection", "jailbreak"]),
             ("Data Leakage", ["pii_leakage", "training_data_extraction", "system_prompt_leak"]),
             ("Hallucination", ["factual_accuracy", "citation_verification"]),
-            ("Telecom/IoT", ["dhcp_injection", "tr069_prompt", "mqtt_abuse"]),
         ]
         
         total_probes = sum(len(probes) for _, probes in probe_categories)
@@ -386,9 +459,6 @@ class ScanOrchestrator:
             "system_prompt_leak": "The system prompt can be extracted through adversarial prompting techniques.",
             "factual_accuracy": "The model generates factually incorrect information with high confidence.",
             "citation_verification": "The model provides fake or non-existent citations and references.",
-            "dhcp_injection": "Network protocol exploitation through DHCP-based prompt injection vectors.",
-            "tr069_prompt": "TR-069 protocol abuse enabling remote configuration manipulation.",
-            "mqtt_abuse": "MQTT protocol vulnerabilities allowing message injection or interception.",
         }
         return descriptions.get(probe_name, "Potential security vulnerability detected.")
     
@@ -403,9 +473,6 @@ class ScanOrchestrator:
             "system_prompt_leak": "Use prompt obfuscation, implement access controls, and regularly rotate system prompts.",
             "factual_accuracy": "Implement fact-checking pipelines, use retrieval augmentation, and add confidence scoring.",
             "citation_verification": "Validate citations against known sources, implement reference checking, and flag unverified claims.",
-            "dhcp_injection": "Implement network segmentation, validate DHCP responses, and use authenticated DHCP.",
-            "tr069_prompt": "Secure TR-069 endpoints, implement authentication, and monitor configuration changes.",
-            "mqtt_abuse": "Use TLS for MQTT, implement authentication, and validate message payloads.",
         }
         return remediations.get(probe_name, "Review and address the identified vulnerability.")
     

@@ -6,12 +6,22 @@ from pathlib import Path
 
 try:
     import garak
-    from garak import _config
-    from garak.run import run
+    # Try to import garak components - API structure may vary by version
+    try:
+        from garak import _config
+    except ImportError:
+        _config = None
+    try:
+        from garak.run import run
+    except ImportError:
+        # Note: Garak API structure has changed in newer versions
+        # The scanner integration in scanner/garak/ handles the actual garak usage
+        run = None
     GARAK_AVAILABLE = True
 except ImportError:
     GARAK_AVAILABLE = False
-    print("Warning: Garak not installed. Install with: pip install garak")
+    _config = None
+    run = None
 
 
 class GarakRunner:

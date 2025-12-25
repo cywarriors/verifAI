@@ -9,6 +9,12 @@ from fastapi.responses import JSONResponse
 from app.config.settings import settings
 from app.db.session import engine, Base
 from app.api import auth, scans, compliance, reports
+from app.core.logging_config import setup_logging
+
+# Setup logging
+setup_logging()
+import logging
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -16,10 +22,13 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup: Create database tables
     Base.metadata.create_all(bind=engine)
+    logger.info("Database initialized")
+    logger.info(f"{settings.APP_NAME} v{settings.APP_VERSION} started")
     print(f"✓ Database initialized")
     print(f"✓ {settings.APP_NAME} v{settings.APP_VERSION} started")
     yield
     # Shutdown
+    logger.info("Shutting down...")
     print("Shutting down...")
 
 
@@ -43,18 +52,67 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Security middleware
+from app.core.security_middleware import SecurityHeadersMiddleware, RateLimitMiddleware
+app.add_middleware(SecurityHeadersMiddleware)
+if not settings.DEBUG:
+    app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
+
 
 # Exception handlers
+import logging
+logger = logging.getLogger(__name__)
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler"""
+    """Global exception handler with detailed logging"""
+    import traceback
+    
+    # Log full error details
+    logger.error(
+        f"Unhandled exception: {type(exc).__name__}: {str(exc)}",
+        exc_info=True,
+        extra={
+            "path": request.url.path,
+            "method": request.method,
+            "client": request.client.host if request.client else None
+        }
+    )
+    
+    # Return appropriate error response
+    error_detail = {
+        "detail": "Internal server error",
+        "type": type(exc).__name__,
+    }
+    
+    if settings.DEBUG:
+        error_detail["message"] = str(exc)
+        error_detail["traceback"] = traceback.format_exc()
+    else:
+        error_detail["message"] = "An unexpected error occurred. Please contact support."
+        error_detail["error_id"] = f"ERR-{hash(str(exc)) % 1000000:06d}"
+    
     return JSONResponse(
         status_code=500,
-        content={
-            "detail": "Internal server error",
-            "type": type(exc).__name__,
-            "message": str(exc) if settings.DEBUG else "An unexpected error occurred"
-        }
+        content=error_detail
+    )
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    """Handle validation errors"""
+    logger.warning(f"Validation error: {str(exc)}", extra={"path": request.url.path})
+    return JSONResponse(
+        status_code=400,
+        content={"detail": str(exc), "type": "ValidationError"}
+    )
+
+@app.exception_handler(PermissionError)
+async def permission_error_handler(request: Request, exc: PermissionError):
+    """Handle permission errors"""
+    logger.warning(f"Permission denied: {str(exc)}", extra={"path": request.url.path})
+    return JSONResponse(
+        status_code=403,
+        content={"detail": str(exc) or "Permission denied", "type": "PermissionError"}
     )
 
 

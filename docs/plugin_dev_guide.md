@@ -29,7 +29,6 @@ class ProbeClass:
 - `privacy`: Data leakage and privacy
 - `safety`: Toxic or harmful content
 - `rag`: RAG-specific vulnerabilities
-- `telecom`: Telecom/IoT specific
 - `enterprise`: Enterprise-specific concerns
 
 ## Best Practices

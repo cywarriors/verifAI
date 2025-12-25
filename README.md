@@ -57,25 +57,65 @@ npm run dev
 Access the application:
 - **Frontend**: http://localhost:6789
 - **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/api/docs
+- **API Docs**: http://localhost:8000/api/v1/docs
+
+## 🔍 Available Scanners
+
+The platform supports multiple security scanning engines:
+
+- **LLMTopTen**: Comprehensive OWASP LLM Top 10 vulnerability scanning (10 probes)
+  - LLM01: Prompt Injection
+  - LLM02: Insecure Output Handling
+  - LLM03: Training Data Poisoning
+  - LLM04: Model Denial of Service
+  - LLM05: Supply Chain Vulnerabilities
+  - LLM06: Sensitive Information Disclosure
+  - LLM07: Insecure Plugin Design
+  - LLM08: Excessive Agency
+  - LLM09: Overreliance
+  - LLM10: Model Theft
+
+- **AgentTopTen**: Comprehensive OWASP Agentic AI Top 10 vulnerability scanning (10 probes)
+  - AA01: Agent Goal Hijack
+  - AA02: Tool Misuse
+  - AA03: Identity & Privilege Abuse
+  - AA04: Model Isolation Failure
+  - AA05: Unauthorized Tool Access
+  - AA06: Resource Exhaustion
+  - AA07: Agent Orchestration Manipulation
+  - AA08: Insecure Communication
+  - AA09: Inadequate Agent Sandboxing
+  - AA10: Insufficient Agent Monitoring
+
+- **Garak**: Industry-standard LLM security framework with extensive probe library
+- **Counterfit**: Azure Counterfit for advanced ML attack scenarios (optional)
+- **ART**: Adversarial Robustness Toolbox for model robustness testing (optional)
+
+Each scanner provides detailed vulnerability reports with:
+- Example attack scenarios
+- Prevention and mitigation strategies
+- Risk scoring and severity assessment
+- Compliance framework mapping
 
 ## 📋 Features
 
 ### Phase 1 MVP (✅ Complete)
 - ✅ Garak integration for security scanning
+- ✅ LLMTopTen scanner for OWASP LLM Top 10 vulnerabilities
+- ✅ AgentTopTen scanner for OWASP Agentic AI Top 10 vulnerabilities
 - ✅ Scan Orchestrator for job management
 - ✅ React Dashboard for managing scans
 - ✅ PDF/JSON report generation
 - ✅ REST API for CI/CD integration
 - ✅ JWT Authentication & Authorization
-- ✅ Custom security probes
+- ✅ Probe selection UI with expandable categories
 - ✅ Compliance mapping (NIST AI RMF, ISO 42001, EU AI Act)
 
 ### Architecture Components
 
 - **User Interfaces**: Web Dashboard (React), REST API
 - **Application Services**: Scan Orchestrator, Plugin Manager, Compliance Engine, Report Generator, Policy Engine
-- **Scanning Engine**: Garak Core, Custom Probes, Model Connectors, Sandbox Execution
+- **Scanning Engine**: Garak Core, LLMTopTen (OWASP LLM Top 10), AgentTopTen (OWASP Agentic AI Top 10), Model Connectors, Sandbox Execution
 - **Data Layer**: PostgreSQL, Redis, S3/MinIO
 - **Infrastructure**: Kubernetes/Docker, CI/CD, Observability
 
@@ -85,7 +125,20 @@ Access the application:
 SecureAI/
 ├── backend/          # FastAPI backend
 ├── frontend/         # React dashboard
-├── scanner/          # Security probes and configs
+├── scanner/          # Security scanning engine
+│   ├── llmtopten/    # OWASP LLM Top 10 scanner
+│   │   ├── probes/   # LLM01-LLM10 vulnerability probes
+│   │   ├── generators/  # Model interaction components
+│   │   ├── detectors/   # Vulnerability detection logic
+│   │   └── evaluators/  # Result evaluation components
+│   ├── agenttopten/  # OWASP Agentic AI Top 10 scanner
+│   │   ├── probes/   # AA01-AA10 vulnerability probes
+│   │   ├── generators/  # Agent interaction components
+│   │   ├── detectors/   # Vulnerability detection logic
+│   │   └── evaluators/  # Result evaluation components
+│   ├── garak/        # Garak integration
+│   ├── configs/      # Scanner configurations
+│   └── scanner_engine.py  # Main orchestration engine
 ├── compliance/       # Framework mappings
 ├── deployment/       # K8s, Terraform, Ansible
 └── docs/             # Documentation

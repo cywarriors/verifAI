@@ -69,3 +69,29 @@ art:
   circuit_breaker_threshold: 5
   circuit_breaker_timeout: 60
 
+# LLMTopTen integration configuration (OWASP LLM Top 10)
+llmtopten:
+  enabled: true
+  timeout: 120  # seconds (longer for comprehensive OWASP scans)
+  max_concurrent: 3
+  retry_attempts: 2
+  retry_delay: 1.0  # seconds
+  cache_enabled: true
+  cache_ttl: 3600  # seconds (1 hour)
+  rate_limit_per_minute: 60
+  circuit_breaker_threshold: 10  # Failures before opening circuit (increased for production)
+  circuit_breaker_timeout: 30  # Seconds before trying again (reduced for faster recovery)
+
+# AgentTopTen integration configuration (OWASP Agentic AI Top 10)
+agenttopten:
+  enabled: true
+  timeout: 120  # seconds (longer for comprehensive OWASP scans)
+  max_concurrent: 3
+  retry_attempts: 2
+  retry_delay: 1.0  # seconds
+  cache_enabled: true
+  cache_ttl: 3600  # seconds (1 hour)
+  rate_limit_per_minute: 60
+  circuit_breaker_threshold: 10  # Failures before opening circuit (increased for production)
+  circuit_breaker_timeout: 30  # Seconds before trying again (reduced for faster recovery)
+

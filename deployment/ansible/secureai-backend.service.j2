@@ -1,0 +1,20 @@
+[Unit]
+Description=SecureAI LLM Security Scanner Backend
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User={{ app_user }}
+WorkingDirectory={{ app_dir }}/src/backend
+Environment="PATH={{ app_dir }}/venv/bin"
+Environment="DATABASE_URL={{ database_url }}"
+Environment="REDIS_URL={{ redis_url }}"
+Environment="SECRET_KEY={{ secret_key }}"
+Environment="DEBUG={{ debug | default('false') }}"
+ExecStart={{ app_dir }}/venv/bin/python run.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+

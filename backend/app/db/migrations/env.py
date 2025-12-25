@@ -16,7 +16,7 @@ from app.db.session import Base
 from app.config.settings import settings
 
 # Import all models to register them with Base.metadata
-from app.db.models import User, Scan, ScanResult, ScanFinding, ComplianceMapping
+from app.db.models import User, Scan, Vulnerability, ComplianceMapping, AuditLog
 
 # this is the Alembic Config object
 config = context.config

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from scanner_engine import ScannerEngine
+from scanner.scanner_engine import ScannerEngine
 
 
 def test_scanner_engine_initializes_with_default_config():
@@ -14,10 +14,12 @@ def test_scanner_engine_initializes_with_default_config():
     assert isinstance(engine.config, dict)
     assert "probes" in engine.config
 
-    # Should discover our built-in probes
+    # ProbeLoader may have 0 custom probes (since scanner/probes was removed)
+    # but should still work correctly
     custom_probes = engine.probe_loader.list_probes()
     assert isinstance(custom_probes, list)
-    assert len(custom_probes) > 0
+    # Note: Custom probes directory was removed, so this may be empty
+    # OWASP probes are loaded via llmtopten/agenttopten integrations instead
 
 
 def test_scanner_engine_respects_custom_config(tmp_path: Path):

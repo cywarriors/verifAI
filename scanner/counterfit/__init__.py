@@ -11,5 +11,6 @@ This subpackage contains all Counterfit-specific integration code:
 
 from .counterfit_config import CounterfitConfig  # noqa: F401
 from .counterfit_integration import CounterfitIntegration, COUNTERFIT_AVAILABLE  # noqa: F401
+from .counterfit_validator import CounterfitValidator  # noqa: F401
 
 

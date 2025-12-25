@@ -1,16 +1,168 @@
 ---
-# Ansible playbook for on-premises deployment
-# Placeholder - add your deployment tasks here
+# Ansible playbook for on-premises deployment of SecureAI LLM Security Scanner
+# Usage: ansible-playbook -i inventory.ini playbook.yml
 
-- name: Deploy LLM Security Scanner
+- name: Deploy SecureAI LLM Security Scanner
   hosts: all
   become: yes
-  
+  vars:
+    app_user: secureai
+    app_dir: /opt/secureai
+    python_version: "3.13"
+    node_version: "20"
+    
   tasks:
     - name: Update system packages
       package:
         name: "*"
         state: latest
+        update_cache: yes
+      when: ansible_os_family == "Debian"
     
-    # Add your deployment tasks here
+    - name: Install required system packages
+      package:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+          - postgresql-client
+          - redis-tools
+          - git
+          - curl
+          - build-essential
+        state: present
+    
+    - name: Install Node.js via NodeSource
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | bash -
+        apt-get install -y nodejs
+      when: ansible_os_family == "Debian"
+      register: nodejs_install
+      changed_when: "'nodejs' not in ansible_facts.packages"
+    
+    - name: Create application user
+      user:
+        name: "{{ app_user }}"
+        system: yes
+        shell: /bin/bash
+        home: "{{ app_dir }}"
+        create_home: yes
+    
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+    
+    - name: Clone repository (or copy files)
+      git:
+        repo: "{{ repository_url | default('https://github.com/yourorg/secureai.git') }}"
+        dest: "{{ app_dir }}/src"
+        version: "{{ git_branch | default('main') }}"
+      when: repository_url is defined
+      become_user: "{{ app_user }}"
+    
+    - name: Copy application files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ app_dir }}/src/{{ item }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+      when: repository_url is not defined
+      loop:
+        - backend
+        - frontend
+        - scanner
+        - compliance
+      become_user: "{{ app_user }}"
+    
+    - name: Create Python virtual environment
+      command: "python3 -m venv {{ app_dir }}/venv"
+      args:
+        creates: "{{ app_dir }}/venv"
+      become_user: "{{ app_user }}"
+    
+    - name: Install Python dependencies
+      pip:
+        requirements: "{{ app_dir }}/src/backend/requirements.txt"
+        virtualenv: "{{ app_dir }}/venv"
+        virtualenv_python: python3
+      become_user: "{{ app_user }}"
+    
+    - name: Install frontend dependencies
+      npm:
+        path: "{{ app_dir }}/src/frontend"
+        state: present
+      become_user: "{{ app_user }}"
+    
+    - name: Build frontend
+      npm:
+        path: "{{ app_dir }}/src/frontend"
+        state: present
+        production: yes
+      become_user: "{{ app_user }}"
+    
+    - name: Create systemd service for backend
+      template:
+        src: secureai-backend.service.j2
+        dest: /etc/systemd/system/secureai-backend.service
+      notify: restart backend
+    
+    - name: Create systemd service for frontend (if using Node server)
+      template:
+        src: secureai-frontend.service.j2
+        dest: /etc/systemd/system/secureai-frontend.service
+      when: use_node_frontend | default(false)
+      notify: restart frontend
+    
+    - name: Create nginx configuration
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/secureai
+      notify: restart nginx
+    
+    - name: Enable nginx site
+      file:
+        src: /etc/nginx/sites-available/secureai
+        dest: /etc/nginx/sites-enabled/secureai
+        state: link
+      notify: restart nginx
+    
+    - name: Run database migrations
+      command: "{{ app_dir }}/venv/bin/alembic upgrade head"
+      args:
+        chdir: "{{ app_dir }}/src/backend"
+      become_user: "{{ app_user }}"
+      environment:
+        DATABASE_URL: "{{ database_url }}"
+    
+    - name: Enable and start services
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+      loop:
+        - secureai-backend
+        - nginx
+      when: item != "secureai-frontend" or use_node_frontend | default(false)
 
+  handlers:
+    - name: restart backend
+      systemd:
+        name: secureai-backend
+        state: restarted
+        daemon_reload: yes
+    
+    - name: restart frontend
+      systemd:
+        name: secureai-frontend
+        state: restarted
+        daemon_reload: yes
+    
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted

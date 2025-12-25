@@ -18,7 +18,6 @@
 - RBAC + SSO
 - Advanced compliance engine
 - RAG security probes
-- Telecom/IoT probes
 - Model inventory
 - Trend analytics
 - Signed reports
