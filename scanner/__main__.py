@@ -13,7 +13,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    logger.info("SecureAI Scanner Module")
+    logger.info("verifAI Scanner Module")
     logger.info("This module is typically used by the backend scan orchestrator")
     logger.info("For standalone usage, import ScannerEngine and use directly")
     

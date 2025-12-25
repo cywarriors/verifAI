@@ -1,9 +1,9 @@
 ## Counterfit Integration Guide
 
-This guide explains how to integrate and use [Counterfit](https://github.com/Azure/counterfit) – a CLI and library for automating ML security assessments – with SecureAI.
+This guide explains how to integrate and use [Counterfit](https://github.com/Azure/counterfit) – a CLI and library for automating ML security assessments – with verifAI.
 
 > **Note**  
-> Counterfit is a *generic* ML attack framework. To use it effectively with LLMs in SecureAI, you must define project‑specific Counterfit targets and attacks. The SecureAI integration provides a production‑ready wrapper (config, caching, metrics, circuit breaker), but does not ship opinionated targets by default.
+> Counterfit is a *generic* ML attack framework. To use it effectively with LLMs in verifAI, you must define project‑specific Counterfit targets and attacks. The verifAI integration provides a production‑ready wrapper (config, caching, metrics, circuit breaker), but does not ship opinionated targets by default.
 
 ### What the integration provides
 
@@ -105,7 +105,7 @@ The `ScanOrchestrator` detects `scanner_type=counterfit` and routes execution th
 
 ### Wiring Counterfit targets and attacks
 
-The SecureAI integration expects **two keys** in `model_config`:
+The verifAI integration expects **two keys** in `model_config`:
 
 - `counterfit_target` – name or identifier for a project‑defined Counterfit target (e.g., a class that wraps your LLM).
 - `counterfit_attack` – name of the Counterfit attack to run against that target.

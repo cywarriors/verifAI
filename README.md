@@ -1,4 +1,4 @@
-# Commercial LLM Security Scanner
+# verifAI - Where AI Meets Assurance
 
 A comprehensive security scanning solution for Large Language Models (LLMs) with compliance mapping, risk assessment, and automated reporting.
 
@@ -17,7 +17,7 @@ A comprehensive security scanning solution for Large Language Models (LLMs) with
 ```bash
 # 1. Clone and setup
 git clone <repository-url>
-cd SecureAI
+cd verifAI
 
 # 2. Configure environment
 cp backend/.env.example backend/.env
@@ -38,7 +38,7 @@ curl http://localhost:8000/health
 ```bash
 # 1. Clone and setup
 git clone <repository-url>
-cd SecureAI
+cd verifAI
 
 # 2. Setup backend (use Python 3.10-3.13)
 cd backend
@@ -122,7 +122,7 @@ Each scanner provides detailed vulnerability reports with:
 ## 📁 Project Structure
 
 ```
-SecureAI/
+verifAI/
 ├── backend/          # FastAPI backend
 ├── frontend/         # React dashboard
 ├── scanner/          # Security scanning engine

@@ -176,7 +176,7 @@ export default function Settings() {
               
               <SettingsSection icon={Lock} title="API Keys">
                 <p className="text-secondary" style={{ marginBottom: 'var(--space-md)' }}>
-                  Manage API keys for programmatic access to SecureAI.
+                  Manage API keys for programmatic access to verifAI.
                 </p>
                 <button className="btn btn-secondary">
                   Generate New API Key
@@ -272,7 +272,7 @@ export default function Settings() {
             <div className="animate-fade-in">
               <SettingsSection icon={Palette} title="Theme">
                 <p className="text-secondary" style={{ marginBottom: 'var(--space-md)' }}>
-                  SecureAI uses a dark theme optimized for security workflows.
+                  verifAI uses a dark theme optimized for security workflows.
                 </p>
                 <div className="theme-options">
                   <div className="theme-option selected">

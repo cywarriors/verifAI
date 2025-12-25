@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Run the SecureAI backend server"""
+"""Run the verifAI backend server"""
 
 import uvicorn
 import sys
@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  SecureAI - LLM Security Scanner Backend")
+    print("  verifAI - LLM Security Scanner Backend")
     print("=" * 50)
     print()
     

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
     
     # Application
-    APP_NAME: str = "SecureAI - LLM Security Scanner"
+    APP_NAME: str = "verifAI - LLM Security Scanner"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     SECRET_KEY: str = "change-me-in-production-use-strong-secret"
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     ]
     
     # Database - SQLite for simple setup, PostgreSQL for production
-    DATABASE_URL: str = "sqlite:///./secureai.db"
+    DATABASE_URL: str = "sqlite:///./verifai.db"
     
     # Redis (optional)
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     S3_ENDPOINT: Optional[str] = None
     S3_ACCESS_KEY: Optional[str] = None
     S3_SECRET_KEY: Optional[str] = None
-    S3_BUCKET: str = "secureai-reports"
+    S3_BUCKET: str = "verifai-reports"
     USE_MINIO: bool = False
     
     # LLM Providers (optional - for actual scanning)

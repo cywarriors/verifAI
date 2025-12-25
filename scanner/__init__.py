@@ -1,4 +1,4 @@
-"""SecureAI Scanner - Production-ready LLM security scanner"""
+"""verifAI Scanner - Production-ready LLM security scanner"""
 
 __version__ = "1.0.0"
 

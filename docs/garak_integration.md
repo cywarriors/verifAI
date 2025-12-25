@@ -1,6 +1,6 @@
 # Garak Integration Guide
 
-This guide explains how to integrate and use [Garak](https://github.com/leondz/garak) - an LLM security testing framework - with SecureAI.
+This guide explains how to integrate and use [Garak](https://github.com/leondz/garak) - an LLM security testing framework - with verifAI.
 
 ## What is Garak?
 

@@ -1,4 +1,4 @@
-# TODO List - SecureAI LLM Security Scanner
+# TODO List - verifAI LLM Security Scanner
 
 ## 🔴 High Priority (Critical for Production) ✅ COMPLETE
 

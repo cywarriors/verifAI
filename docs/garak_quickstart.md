@@ -1,6 +1,6 @@
 # Garak Quick Start
 
-Quick reference for using Garak with SecureAI.
+Quick reference for using Garak with verifAI.
 
 ## Installation
 

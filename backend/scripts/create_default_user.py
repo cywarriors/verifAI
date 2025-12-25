@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Create a default admin user for SecureAI"""
+"""Create a default admin user for verifAI"""
 
 import sys
 from pathlib import Path
@@ -33,7 +33,7 @@ def create_default_user():
         
         admin_user = User(
             username="admin",
-            email="admin@secureai.local",
+            email="admin@verifai.local",
             hashed_password=hashed_password,
             full_name="Administrator",
             role=UserRole.ADMIN,
@@ -48,7 +48,7 @@ def create_default_user():
         print("=" * 50)
         print(f"Username: admin")
         print(f"Password: admin123")
-        print(f"Email: admin@secureai.local")
+        print(f"Email: admin@verifai.local")
         print()
         print("⚠️  WARNING: Change this password immediately in production!")
         print("=" * 50)

@@ -1,6 +1,6 @@
 ## End-to-End Scanner Flow (Frontend → Backend → Engines)
 
-This document describes how a scan request flows through SecureAI from the UI, through the backend, into the scanner engine and the different LLM security scanners (built‑in probes, Garak, Counterfit, ART).
+This document describes how a scan request flows through verifAI from the UI, through the backend, into the scanner engine and the different LLM security scanners (built‑in probes, Garak, Counterfit, ART).
 
 ### 1. User starts a scan (Frontend)
 
@@ -11,7 +11,7 @@ This document describes how a scan request flows through SecureAI from the UI, t
      - `model_name` (e.g. `gpt-4`, `claude-3-opus`)
      - `model_config` (API key, endpoint, temperature, etc.)
    - **Security scanner**:
-     - `builtin` – SecureAI first‑party probes only
+     - `builtin` – verifAI first‑party probes only
      - `garak` – Garak LLM security framework
      - `counterfit` – Azure Counterfit (optional, ML attacks)
      - `art` – Adversarial Robustness Toolbox (optional)

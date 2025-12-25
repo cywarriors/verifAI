@@ -2,7 +2,7 @@
 
 ## Overview
 
-SecureAI uses Alembic for database migrations. This guide explains how to create, test, and apply migrations.
+verifAI uses Alembic for database migrations. This guide explains how to create, test, and apply migrations.
 
 ## Migration Status
 

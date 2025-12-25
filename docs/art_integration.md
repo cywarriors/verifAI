@@ -1,9 +1,9 @@
 ## ART Integration Guide
 
-This guide explains how to integrate and use the [Adversarial Robustness Toolbox (ART)](https://github.com/Trusted-AI/adversarial-robustness-toolbox) with SecureAI.
+This guide explains how to integrate and use the [Adversarial Robustness Toolbox (ART)](https://github.com/Trusted-AI/adversarial-robustness-toolbox) with verifAI.
 
 > **Note**  
-> ART is a flexible research framework for building and evaluating adversarial attacks and defenses. To use it with arbitrary LLMs, you must define ART **estimators** that wrap your model APIs. The SecureAI integration provides production-grade plumbing (config, metrics, cache, circuit breaker), but does not ship project-specific estimators or attacks by default.
+> ART is a flexible research framework for building and evaluating adversarial attacks and defenses. To use it with arbitrary LLMs, you must define ART **estimators** that wrap your model APIs. The verifAI integration provides production-grade plumbing (config, metrics, cache, circuit breaker), but does not ship project-specific estimators or attacks by default.
 
 ### What the integration provides
 
@@ -106,7 +106,7 @@ The `ScanOrchestrator` detects `scanner_type=art` and routes to `ARTIntegration`
 
 ### Wiring ART estimators and attacks
 
-The SecureAI integration expects two keys in `model_config`:
+The verifAI integration expects two keys in `model_config`:
 
 - `art_estimator` – identifier for your ART estimator (e.g. `"my_llm_estimator"`).
 - `art_attack` – name of the ART attack to run (e.g. `"ProjectedGradientDescent"`).

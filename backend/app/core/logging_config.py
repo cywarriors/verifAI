@@ -1,4 +1,4 @@
-"""Logging configuration for SecureAI"""
+"""Logging configuration for verifAI"""
 
 import logging
 import sys
@@ -32,7 +32,7 @@ def setup_logging():
     
     # File handler with rotation
     file_handler = RotatingFileHandler(
-        log_dir / "secureai.log",
+        log_dir / "verifai.log",
         maxBytes=10 * 1024 * 1024,  # 10MB
         backupCount=5
     )
@@ -46,7 +46,7 @@ def setup_logging():
     
     # Error file handler
     error_handler = RotatingFileHandler(
-        log_dir / "secureai_errors.log",
+        log_dir / "verifai_errors.log",
         maxBytes=10 * 1024 * 1024,  # 10MB
         backupCount=5
     )

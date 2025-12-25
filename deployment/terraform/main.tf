@@ -1,4 +1,4 @@
-# Terraform configuration for SecureAI LLM Security Scanner
+# Terraform configuration for verifAI LLM Security Scanner
 # Supports AWS, Azure, and GCP deployments
 
 terraform {
@@ -23,7 +23,7 @@ terraform {
   # Configure your backend (S3, GCS, Azure Storage, etc.)
   # backend "s3" {
   #   bucket = "your-terraform-state"
-  #   key    = "secureai/terraform.tfstate"
+  #   key    = "verifai/terraform.tfstate"
   #   region = "us-east-1"
   # }
 }
@@ -44,7 +44,7 @@ variable "region" {
 variable "app_name" {
   description = "Application name"
   type        = string
-  default     = "secureai"
+  default     = "verifai"
 }
 
 # Example AWS Resources (uncomment and configure as needed)
@@ -70,8 +70,8 @@ variable "app_name" {
 #   allocated_storage = 20
 #   storage_type   = "gp3"
 #   
-#   db_name  = "secureai"
-#   username = "secureai_admin"
+#   db_name  = "verifai"
+#   username = "verifai_admin"
 #   password = var.db_password  # Use secrets manager in production
 #   
 #   vpc_security_group_ids = [aws_security_group.rds.id]
@@ -139,7 +139,7 @@ variable "app_name" {
 # Outputs
 output "deployment_instructions" {
   value = <<-EOT
-    SecureAI Infrastructure Configuration
+    verifAI Infrastructure Configuration
     
     This Terraform configuration is a template. To use it:
     

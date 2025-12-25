@@ -1,4 +1,4 @@
-# SecureAI Scanner
+# verifAI Scanner
 
 Production-ready LLM security scanner with dynamic probe loading and multi-model support.
 
@@ -170,7 +170,7 @@ logging.getLogger("scanner").setLevel(logging.DEBUG)
 Build the scanner image:
 
 ```bash
-docker build -t secureai-scanner ./scanner
+docker build -t verifai-scanner ./scanner
 ```
 
 ## Dependencies

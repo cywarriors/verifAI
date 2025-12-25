@@ -67,7 +67,7 @@ python scripts/create_default_user.py
 This creates:
 - Username: `admin`
 - Password: `admin123`
-- Email: `admin@secureai.local`
+- Email: `admin@verifai.local`
 
 ⚠️ **Warning**: Change the default password immediately in production!
 

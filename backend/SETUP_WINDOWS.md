@@ -40,7 +40,7 @@ python run.py
 You should see:
 ```
 ==================================================
-  SecureAI - LLM Security Scanner Backend
+  verifAI - LLM Security Scanner Backend
 ==================================================
 
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)

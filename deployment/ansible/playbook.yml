@@ -1,13 +1,13 @@
 ---
-# Ansible playbook for on-premises deployment of SecureAI LLM Security Scanner
+# Ansible playbook for on-premises deployment of verifAI LLM Security Scanner
 # Usage: ansible-playbook -i inventory.ini playbook.yml
 
-- name: Deploy SecureAI LLM Security Scanner
+- name: Deploy verifAI LLM Security Scanner
   hosts: all
   become: yes
   vars:
-    app_user: secureai
-    app_dir: /opt/secureai
+    app_user: verifai
+    app_dir: /opt/verifai
     python_version: "3.13"
     node_version: "20"
     
@@ -58,7 +58,7 @@
     
     - name: Clone repository (or copy files)
       git:
-        repo: "{{ repository_url | default('https://github.com/yourorg/secureai.git') }}"
+        repo: "{{ repository_url | default('https://github.com/yourorg/verifai.git') }}"
         dest: "{{ app_dir }}/src"
         version: "{{ git_branch | default('main') }}"
       when: repository_url is defined
@@ -107,26 +107,26 @@
     - name: Create systemd service for backend
       template:
         src: secureai-backend.service.j2
-        dest: /etc/systemd/system/secureai-backend.service
+        dest: /etc/systemd/system/verifai-backend.service
       notify: restart backend
     
     - name: Create systemd service for frontend (if using Node server)
       template:
         src: secureai-frontend.service.j2
-        dest: /etc/systemd/system/secureai-frontend.service
+        dest: /etc/systemd/system/verifai-frontend.service
       when: use_node_frontend | default(false)
       notify: restart frontend
     
     - name: Create nginx configuration
       template:
         src: nginx.conf.j2
-        dest: /etc/nginx/sites-available/secureai
+        dest: /etc/nginx/sites-available/verifai
       notify: restart nginx
     
     - name: Enable nginx site
       file:
-        src: /etc/nginx/sites-available/secureai
-        dest: /etc/nginx/sites-enabled/secureai
+        src: /etc/nginx/sites-available/verifai
+        dest: /etc/nginx/sites-enabled/verifai
         state: link
       notify: restart nginx
     
@@ -145,20 +145,20 @@
         state: started
         daemon_reload: yes
       loop:
-        - secureai-backend
+        - verifai-backend
         - nginx
-      when: item != "secureai-frontend" or use_node_frontend | default(false)
+      when: item != "verifai-frontend" or use_node_frontend | default(false)
 
   handlers:
     - name: restart backend
       systemd:
-        name: secureai-backend
+        name: verifai-backend
         state: restarted
         daemon_reload: yes
     
     - name: restart frontend
       systemd:
-        name: secureai-frontend
+        name: verifai-frontend
         state: restarted
         daemon_reload: yes
     

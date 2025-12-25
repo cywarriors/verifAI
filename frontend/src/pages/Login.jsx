@@ -41,8 +41,8 @@ export default function Login() {
           <div className="auth-logo">
             <Shield size={40} />
           </div>
-          <h1>SecureAI</h1>
-          <p>LLM Security Scanner</p>
+          <h1>verifAI</h1>
+          <p>Where AI Meets Assurance</p>
         </div>
         
         <form className="auth-form" onSubmit={handleSubmit}>

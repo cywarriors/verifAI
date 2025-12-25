@@ -34,8 +34,8 @@ export default function Sidebar() {
           <Shield size={28} />
         </div>
         <div className="sidebar-brand">
-          <span className="sidebar-title">SecureAI</span>
-          <span className="sidebar-subtitle">Security Scanner</span>
+          <span className="sidebar-title">verifAI</span>
+          <span className="sidebar-subtitle">Where AI Meets Assurance</span>
         </div>
       </div>
       
