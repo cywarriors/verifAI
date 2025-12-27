@@ -1,4 +1,4 @@
-# Garak Integration - Production Ready Features
+  # Garak Integration - Production Ready Features
 
 This document describes the production-ready features implemented in the Garak integration.
 
