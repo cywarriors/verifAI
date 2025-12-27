@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -8,12 +8,16 @@ import {
   FileCheck, 
   Settings,
   LogOut,
-  Plus
+  Plus,
+  Zap,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/scans', icon: Scan, label: 'Scans' },
+  { path: '/scans/garak', icon: Zap, label: 'Garak Scanner' },
   { path: '/compliance', icon: FileCheck, label: 'Compliance' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
@@ -21,6 +25,7 @@ const navItems = [
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -28,55 +33,76 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      {/* Logo */}
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <Shield size={28} />
+          <div className="logo-icon">
+            <Shield size={collapsed ? 24 : 28} />
+          </div>
+          {!collapsed && (
+            <div className="logo-text">
+              <span className="logo-name">verifAI</span>
+              <span className="logo-tagline">AI Security</span>
+            </div>
+          )}
         </div>
-        <div className="sidebar-brand">
-          <span className="sidebar-title">verifAI</span>
-          <span className="sidebar-subtitle">Where AI Meets Assurance</span>
-        </div>
+        <button 
+          className="collapse-btn"
+          onClick={() => setCollapsed(!collapsed)}
+          title={collapsed ? 'Expand' : 'Collapse'}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
       
-      <nav className="sidebar-nav">
+      {/* New Scan CTA */}
+      <div className="sidebar-cta-wrapper">
         <NavLink to="/scans/create" className="sidebar-cta">
           <Plus size={18} />
-          <span>New Scan</span>
+          {!collapsed && <span>New Scan</span>}
         </NavLink>
-        
-        <div className="sidebar-section">
-          <span className="sidebar-section-title">Menu</span>
-          <ul className="sidebar-menu">
-            {navItems.map(({ path, icon: Icon, label }) => (
-              <li key={path}>
-                <NavLink 
-                  to={path} 
-                  className={({ isActive }) => 
-                    `sidebar-link ${isActive ? 'active' : ''}`
-                  }
-                  end={path === '/'}
-                >
-                  <Icon size={20} />
-                  <span>{label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </div>
+      </div>
+      
+      {/* Navigation */}
+      <nav className="sidebar-nav">
+        {!collapsed && <span className="nav-section-title">Menu</span>}
+        <ul className="nav-list">
+          {navItems.map(({ path, icon: Icon, label }) => (
+            <li key={path}>
+              <NavLink 
+                to={path} 
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                end={path === '/'}
+                title={label}
+              >
+                <Icon size={20} />
+                {!collapsed && <span>{label}</span>}
+                {({ isActive }) => isActive && <div className="active-indicator" />}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
       </nav>
       
+      {/* User */}
       <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">
+        <div className="user-section">
+          <div className="user-avatar">
             {user?.full_name?.[0] || user?.username?.[0] || 'U'}
           </div>
-          <div className="sidebar-user-info">
-            <span className="sidebar-user-name">{user?.full_name || user?.username}</span>
-            <span className="sidebar-user-email">{user?.email}</span>
-          </div>
+          {!collapsed && (
+            <div className="user-info">
+              <span className="user-name">{user?.full_name || user?.username}</span>
+              <span className="user-email">{user?.email}</span>
+            </div>
+          )}
         </div>
-        <button className="sidebar-logout" onClick={handleLogout} title="Sign out">
+        <button 
+          className="logout-btn" 
+          onClick={handleLogout} 
+          title="Sign out"
+        >
           <LogOut size={18} />
         </button>
       </div>
@@ -87,165 +113,223 @@ export default function Sidebar() {
           top: 0;
           left: 0;
           bottom: 0;
-          width: var(--sidebar-width);
-          background: var(--color-bg-secondary);
-          border-right: 1px solid var(--color-border);
+          width: 260px;
+          background: rgba(17, 24, 39, 0.95);
+          backdrop-filter: blur(20px);
+          border-right: 1px solid rgba(255, 255, 255, 0.06);
           display: flex;
           flex-direction: column;
           z-index: 100;
+          transition: width 0.3s ease;
         }
         
+        .sidebar.collapsed {
+          width: 72px;
+        }
+        
+        /* Header */
         .sidebar-header {
           display: flex;
           align-items: center;
-          gap: var(--space-md);
-          padding: var(--space-lg);
-          border-bottom: 1px solid var(--color-border);
+          justify-content: space-between;
+          padding: 1.25rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
         
         .sidebar-logo {
-          width: 44px;
-          height: 44px;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+        
+        .logo-icon {
+          width: 42px;
+          height: 42px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--color-accent-glow);
-          border: 1px solid var(--color-accent);
-          border-radius: var(--radius-md);
-          color: var(--color-accent);
+          background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+          border-radius: 12px;
+          color: white;
+          box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+          flex-shrink: 0;
         }
         
-        .sidebar-brand {
+        .logo-text {
           display: flex;
           flex-direction: column;
         }
         
-        .sidebar-title {
-          font-size: 1.125rem;
+        .logo-name {
+          font-size: 1.25rem;
           font-weight: 700;
+          background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        .logo-tagline {
+          font-size: 0.6875rem;
+          color: var(--color-text-muted);
+          letter-spacing: 0.02em;
+        }
+        
+        .collapse-btn {
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          color: var(--color-text-muted);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .collapse-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
           color: var(--color-text-primary);
         }
         
-        .sidebar-subtitle {
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
+        .sidebar.collapsed .collapse-btn {
+          display: none;
         }
         
-        .sidebar-nav {
-          flex: 1;
-          padding: var(--space-md);
-          overflow-y: auto;
+        /* CTA */
+        .sidebar-cta-wrapper {
+          padding: 1rem;
         }
         
         .sidebar-cta {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: var(--space-sm);
-          padding: var(--space-sm) var(--space-md);
-          background: var(--color-accent);
-          color: var(--color-text-inverse);
-          font-weight: 500;
-          border-radius: var(--radius-md);
-          margin-bottom: var(--space-lg);
-          transition: all var(--transition-fast);
+          gap: 0.5rem;
+          padding: 0.75rem;
+          background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+          color: #030712;
+          font-weight: 600;
+          font-size: 0.875rem;
+          border-radius: 10px;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
         }
         
         .sidebar-cta:hover {
-          background: var(--color-accent-light);
-          color: var(--color-text-inverse);
-          box-shadow: var(--shadow-glow);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 30px rgba(6, 182, 212, 0.3);
+          color: #030712;
         }
         
-        .sidebar-section {
-          margin-bottom: var(--space-lg);
+        /* Nav */
+        .sidebar-nav {
+          flex: 1;
+          padding: 0 0.75rem;
+          overflow-y: auto;
         }
         
-        .sidebar-section-title {
+        .nav-section-title {
           display: block;
-          padding: var(--space-sm) var(--space-md);
+          padding: 0.5rem 0.75rem;
           font-size: 0.6875rem;
           font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
           color: var(--color-text-muted);
         }
         
-        .sidebar-menu {
+        .nav-list {
           list-style: none;
         }
         
-        .sidebar-link {
+        .nav-link {
+          position: relative;
           display: flex;
           align-items: center;
-          gap: var(--space-md);
-          padding: var(--space-sm) var(--space-md);
+          gap: 0.75rem;
+          padding: 0.75rem;
           color: var(--color-text-secondary);
-          border-radius: var(--radius-md);
+          border-radius: 10px;
           margin-bottom: 2px;
-          transition: all var(--transition-fast);
+          transition: all 0.15s ease;
+          font-size: 0.9375rem;
         }
         
-        .sidebar-link:hover {
-          background: var(--color-bg-hover);
+        .nav-link:hover {
+          background: rgba(255, 255, 255, 0.05);
           color: var(--color-text-primary);
         }
         
-        .sidebar-link.active {
-          background: var(--color-accent-glow);
+        .nav-link.active {
+          background: rgba(6, 182, 212, 0.1);
           color: var(--color-accent);
         }
         
-        .sidebar-link.active::before {
+        .nav-link.active::before {
           content: '';
           position: absolute;
-          left: 0;
+          left: -0.75rem;
           top: 50%;
           transform: translateY(-50%);
           width: 3px;
           height: 24px;
           background: var(--color-accent);
-          border-radius: 0 2px 2px 0;
+          border-radius: 0 3px 3px 0;
         }
         
+        .sidebar.collapsed .nav-link {
+          justify-content: center;
+          padding: 0.875rem;
+        }
+        
+        .sidebar.collapsed .nav-link.active::before {
+          left: 0;
+        }
+        
+        /* Footer */
         .sidebar-footer {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
-          padding: var(--space-md);
-          border-top: 1px solid var(--color-border);
+          gap: 0.5rem;
+          padding: 1rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(0, 0, 0, 0.2);
         }
         
-        .sidebar-user {
+        .user-section {
           flex: 1;
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
+          gap: 0.75rem;
           min-width: 0;
         }
         
-        .sidebar-avatar {
+        .user-avatar {
           width: 36px;
           height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--color-bg-hover);
-          border-radius: var(--radius-full);
+          background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%);
+          border: 1px solid rgba(6, 182, 212, 0.3);
+          border-radius: 10px;
           font-weight: 600;
           font-size: 0.875rem;
           color: var(--color-accent);
           flex-shrink: 0;
         }
         
-        .sidebar-user-info {
+        .user-info {
           flex: 1;
           min-width: 0;
           display: flex;
           flex-direction: column;
         }
         
-        .sidebar-user-name {
+        .user-name {
           font-size: 0.875rem;
           font-weight: 500;
           color: var(--color-text-primary);
@@ -254,7 +338,7 @@ export default function Sidebar() {
           text-overflow: ellipsis;
         }
         
-        .sidebar-user-email {
+        .user-email {
           font-size: 0.75rem;
           color: var(--color-text-muted);
           white-space: nowrap;
@@ -262,19 +346,28 @@ export default function Sidebar() {
           text-overflow: ellipsis;
         }
         
-        .sidebar-logout {
-          padding: var(--space-sm);
+        .logout-btn {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           background: transparent;
-          border: none;
+          border: 1px solid transparent;
           color: var(--color-text-muted);
-          border-radius: var(--radius-md);
+          border-radius: 8px;
           cursor: pointer;
-          transition: all var(--transition-fast);
+          transition: all 0.15s ease;
         }
         
-        .sidebar-logout:hover {
-          background: var(--color-danger-bg);
-          color: var(--color-danger);
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.3);
+          color: #f87171;
+        }
+        
+        .sidebar.collapsed .user-info {
+          display: none;
         }
       `}</style>
     </aside>

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.config.settings import settings
 from app.db.session import engine, Base
-from app.api import auth, scans, compliance, reports
+from app.api import auth, scans, compliance, reports, garak_scans
 from app.core.logging_config import setup_logging
 
 # Setup logging
@@ -171,6 +171,12 @@ app.include_router(
     scans.router,
     prefix=f"{settings.API_V1_STR}/scans",
     tags=["Scans"]
+)
+
+app.include_router(
+    garak_scans.router,
+    prefix=f"{settings.API_V1_STR}/scans",
+    tags=["Garak Scans"]
 )
 
 app.include_router(

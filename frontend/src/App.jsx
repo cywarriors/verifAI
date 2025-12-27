@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/Layout/AppLayout';
 
@@ -16,6 +16,7 @@ import ScanCreate from './pages/ScanCreate';
 import ScanDetail from './pages/ScanDetail';
 import Compliance from './pages/Compliance';
 import Settings from './pages/Settings';
+import GarakScan from './pages/GarakScan';
 
 // Styles
 import './styles/index.css';
@@ -24,7 +25,7 @@ import './styles/components.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -34,14 +35,12 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <Routes>
-            {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
-            {/* Protected routes with layout */}
             <Route
               element={
                 <ProtectedRoute>
@@ -53,41 +52,28 @@ function App() {
               <Route path="/scans" element={<Scans />} />
               <Route path="/scans/create" element={<ScanCreate />} />
               <Route path="/scans/:id" element={<ScanDetail />} />
+              <Route path="/scans/garak" element={<GarakScan />} />
               <Route path="/compliance" element={<Compliance />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             
-            {/* Catch all - redirect to dashboard */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
-        </Router>
-        
-        {/* Toast notifications */}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'var(--color-bg-elevated)',
-              color: 'var(--color-text-primary)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-            },
-            success: {
-              iconTheme: {
-                primary: 'var(--color-success)',
-                secondary: 'var(--color-bg-elevated)',
+          
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#1f2937',
+                color: '#f9fafb',
+                border: '1px solid #374151',
+                borderRadius: '8px',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: 'var(--color-danger)',
-                secondary: 'var(--color-bg-elevated)',
-              },
-            },
-          }}
-        />
-      </AuthProvider>
+            }}
+          />
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
   );
 }

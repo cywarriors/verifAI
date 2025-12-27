@@ -22,6 +22,15 @@ from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
+# Optional Garak scanner import
+try:
+    from scanner.garak_scanner import GarakScanner
+    GARAK_SCANNER_AVAILABLE = True
+except Exception as e:
+    GARAK_SCANNER_AVAILABLE = False
+    GarakScanner = None
+    logger.debug("GarakScanner not available: %s", e)
+
 # Try to import scanner - add parent directory to path if needed
 try:
     scanner_path = Path(__file__).parent.parent.parent.parent / "scanner"
@@ -69,8 +78,13 @@ class ScanOrchestrator:
         
         return scan
     
-    async def execute_scan(self, scan_id: int) -> None:
-        """Execute a security scan (background task)"""
+    async def execute_scan(self, scan_id: int, api_key: str = None) -> None:
+        """Execute a security scan (background task)
+        
+        Args:
+            scan_id: ID of the scan to execute
+            api_key: Optional API key for model access (passed securely, not stored)
+        """
         scan = self.db.query(Scan).filter(Scan.id == scan_id).first()
         if not scan:
             return
@@ -81,8 +95,8 @@ class ScanOrchestrator:
             scan.started_at = datetime.utcnow()
             self.db.commit()
             
-            # Simulate scan execution with progress updates
-            vulnerabilities = await self._run_probes(scan)
+            # Run probes with scanner selection
+            vulnerabilities = await self._run_probes(scan, api_key)
             
             # Check if cancelled
             self.db.refresh(scan)
@@ -147,20 +161,86 @@ class ScanOrchestrator:
             # Don't re-raise - scan is marked as failed
             return
     
-    async def _run_probes(self, scan: Scan) -> List[Dict[str, Any]]:
+    async def _run_probes(self, scan: Scan, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
         """Run security probes against the model"""
         vulnerabilities = []
-        
-        # Use actual scanner if available, otherwise fall back to simulation
+
+        # Route Garak scans directly through GarakScanner when available
+        if getattr(scan, "scanner_type", None) == ScannerType.GARAK:
+            if GARAK_SCANNER_AVAILABLE and GarakScanner:
+                try:
+                    return await self._run_garak_scanner(scan, api_key)
+                except Exception as e:
+                    logger.error("Error running Garak scanner: %s. Falling back to simulation.", e, exc_info=True)
+            else:
+                logger.warning("Garak scanner not available; using simulation")
+            return await self._run_probes_simulation(scan)
+
+        # Use generic scanner engine if available, otherwise fall back to simulation
         if SCANNER_AVAILABLE and ScannerEngine:
             try:
                 return await self._run_probes_with_scanner(scan)
             except Exception as e:
                 logger.error(f"Error using scanner engine: {e}. Falling back to simulation.")
                 # Fall through to simulation mode
-        
+
         # Simulation mode (fallback)
         return await self._run_probes_simulation(scan)
+
+    async def _run_garak_scanner(self, scan: Scan, api_key: Optional[str]) -> List[Dict[str, Any]]:
+        """Execute Garak scanner directly with in-memory API key"""
+        if not GARAK_SCANNER_AVAILABLE or not GarakScanner:
+            raise RuntimeError("GarakScanner is not available")
+
+        garak = GarakScanner()
+
+        probes = []
+        if scan.model_config:
+            probes = scan.model_config.get("probes") or []
+        timeout = (scan.model_config or {}).get("timeout", garak.config.timeout)
+        prompt = (scan.model_config or {}).get("prompt", "Security evaluation prompt")
+
+        result = await garak.scan(
+            model_type=scan.model_type,
+            model_name=scan.model_name,
+            prompt=prompt,
+            probes=probes,
+            api_key=api_key,
+            timeout=timeout,
+        )
+
+        vulnerabilities: List[Dict[str, Any]] = []
+        severity_map = {
+            "critical": Severity.CRITICAL,
+            "high": Severity.HIGH,
+            "medium": Severity.MEDIUM,
+            "low": Severity.LOW,
+            "info": Severity.INFO,
+        }
+
+        for vuln in result.get("vulnerabilities", []):
+            severity = severity_map.get((vuln.get("severity") or "medium").lower(), Severity.MEDIUM)
+            probe_name = vuln.get("probe") or "garak_probe"
+            vulnerabilities.append({
+                "title": vuln.get("type", "Security Issue"),
+                "description": vuln.get("message") or vuln.get("evidence") or "Security issue detected",
+                "severity": severity,
+                "probe_name": probe_name,
+                "probe_category": vuln.get("category", "garak"),
+                "evidence": vuln.get("evidence"),
+                "remediation": vuln.get("remediation") or self._get_remediation(probe_name),
+                "cvss_score": self._severity_to_cvss(severity),
+                "metadata": {
+                    "scanner": "garak",
+                    "execution_time": vuln.get("execution_time"),
+                },
+            })
+
+        # Mark progress complete
+        scan.progress = 100.0
+        self.db.commit()
+
+        return vulnerabilities
     
     async def _run_probes_with_scanner(self, scan: Scan) -> List[Dict[str, Any]]:
         """Run probes using the actual scanner engine.
