@@ -75,3 +75,6 @@ alembic.ini.backup
 *.bak
 *.swp
 
+# Local Python 3.12 venv created for compatibility
+.venv312/
+
