@@ -11,13 +11,21 @@ import {
   Plus,
   Zap,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldAlert,
+  Bot,
+  Crosshair,
+  Swords
 } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/scans', icon: Scan, label: 'Scans' },
   { path: '/scans/garak', icon: Zap, label: 'Garak Scanner' },
+  { path: '/scans/llmtopten', icon: ShieldAlert, label: 'LLM Top 10' },
+  { path: '/scans/agenttopten', icon: Bot, label: 'Agent Top 10' },
+  { path: '/scans/art', icon: Crosshair, label: 'ART Scanner' },
+  { path: '/scans/counterfit', icon: Swords, label: 'Counterfit' },
   { path: '/compliance', icon: FileCheck, label: 'Compliance' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
