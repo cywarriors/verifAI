@@ -8,8 +8,8 @@ from scanner.probe_loader import ProbeLoader
 
 # Import Garak scanner
 try:
-	from scanner.garak_scanner import GarakScanner
-	__all__ = ["ScannerEngine", "ProbeLoader", "GarakScanner"]
+	from scanner.garak import GarakScanner, GarakIntegration, GARAK_AVAILABLE
+	__all__ = ["ScannerEngine", "ProbeLoader", "GarakScanner", "GarakIntegration", "GARAK_AVAILABLE"]
 except ImportError:
 	__all__ = ["ScannerEngine", "ProbeLoader"]
 

@@ -203,7 +203,7 @@ async def list_garak_probes(
             logger.warning(f"Tag-based probe grouping unavailable, falling back: {e}")
         
         # Fallback: use our scanner name list and derive category from name prefix
-        from scanner.garak_scanner import GarakScanner
+        from scanner.garak import GarakScanner
         gs = GarakScanner()
         names = gs.list_probes()
         

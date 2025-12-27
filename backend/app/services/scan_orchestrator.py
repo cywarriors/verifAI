@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 # Optional Garak scanner import
 try:
-    from scanner.garak_scanner import GarakScanner
-    GARAK_SCANNER_AVAILABLE = True
+    from scanner.garak import GarakScanner, GARAK_AVAILABLE
+    GARAK_SCANNER_AVAILABLE = GARAK_AVAILABLE
 except Exception as e:
     GARAK_SCANNER_AVAILABLE = False
     GarakScanner = None
