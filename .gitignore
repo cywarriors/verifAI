@@ -78,3 +78,6 @@ alembic.ini.backup
 # Local Python 3.12 venv created for compatibility
 .venv312/
 
+# AI tool snapshots
+.snapshots/
+
