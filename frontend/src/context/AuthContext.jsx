@@ -5,32 +5,25 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check for existing session on mount
+  // Check for existing session on mount - but don't block rendering
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      const storedUser = localStorage.getItem('user');
-      
-      if (token && storedUser) {
-        try {
-          // Verify token is still valid
-          const currentUser = await authAPI.getCurrentUser();
-          setUser(currentUser);
-          setIsAuthenticated(true);
-        } catch (error) {
-          // Token invalid, clear storage
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user');
-        }
-      }
-      
-      setIsLoading(false);
-    };
+    const token = localStorage.getItem('access_token');
+    const storedUser = localStorage.getItem('user');
     
-    initAuth();
+    if (token && storedUser) {
+      // Restore user from localStorage immediately (no API call on init)
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
+      } catch (error) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+      }
+    }
   }, []);
 
   const login = useCallback(async (username, password) => {
