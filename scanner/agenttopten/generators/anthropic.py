@@ -39,7 +39,18 @@ class AnthropicGenerator(Generator):
         
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
-            raise ValueError("Anthropic API key required. Set ANTHROPIC_API_KEY env var or pass api_key parameter")
+            raise ValueError(
+                "Anthropic API key required. Set ANTHROPIC_API_KEY environment variable, "
+                "add it to your .env file, or pass api_key parameter. "
+                "Get your API key from: https://console.anthropic.com/"
+            )
+        
+        # Validate API key format (should start with 'sk-')
+        if not self.api_key.startswith('sk-'):
+            logger.warning(
+                "Anthropic API key doesn't start with 'sk-'. "
+                "Please verify you're using the correct API key from https://console.anthropic.com/"
+            )
         
         self.client = anthropic.AsyncAnthropic(api_key=self.api_key)
         
@@ -83,8 +94,22 @@ class AnthropicGenerator(Generator):
             
             return outputs
             
+        except anthropic.AuthenticationError as e:
+            error_msg = str(e)
+            logger.error(f"Anthropic API authentication failed: {error_msg}")
+            raise ValueError(
+                f"Invalid Anthropic API key. Please verify your API key is correct. "
+                f"Get a new key from: https://console.anthropic.com/ "
+                f"Error: {error_msg}"
+            )
         except Exception as e:
             logger.error(f"Error calling Anthropic API: {e}", exc_info=True)
+            # Re-raise authentication errors
+            if "authentication" in str(e).lower() or "401" in str(e):
+                raise ValueError(
+                    f"Anthropic API authentication failed. Please check your API key. "
+                    f"Error: {str(e)}"
+                )
             return [None] * generations_this_call
     
     def _call_model(self, prompt: Conversation, generations_this_call: int = 1) -> List[Union[Message, None]]:

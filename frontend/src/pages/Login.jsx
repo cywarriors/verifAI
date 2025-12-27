@@ -23,11 +23,21 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      await login(username, password);
+      // Strip whitespace from username and password
+      const trimmedUsername = username.trim();
+      const trimmedPassword = password.trim();
+      
+      if (!trimmedUsername || !trimmedPassword) {
+        setError('Username and password are required');
+        setIsLoading(false);
+        return;
+      }
+      
+      await login(trimmedUsername, trimmedPassword);
       toast.success('Welcome back!');
       navigate(from, { replace: true });
     } catch (err) {
-      const message = err.response?.data?.detail || 'Invalid credentials';
+      const message = err.response?.data?.detail || err.message || 'Invalid credentials';
       setError(message);
     } finally {
       setIsLoading(false);

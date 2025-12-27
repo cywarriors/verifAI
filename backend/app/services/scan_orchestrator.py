@@ -18,6 +18,7 @@ from app.db.models import (
     ScannerType,
 )
 from app.services.compliance_engine import ComplianceEngine
+from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -179,12 +180,32 @@ class ScanOrchestrator:
             scanner_config_path = Path(__file__).parent.parent.parent.parent / "scanner" / "configs" / "default.yaml"
             scanner = ScannerEngine(config_path=scanner_config_path)
             
+            # Merge API keys from settings if not provided in model_config
+            model_config = scan.model_config.copy() if scan.model_config else {}
+            
+            # Add API keys from settings if not already in model_config
+            if scan.model_type == "anthropic":
+                if not model_config.get("api_key") and not model_config.get("anthropic_api_key"):
+                    if settings.ANTHROPIC_API_KEY:
+                        model_config["api_key"] = settings.ANTHROPIC_API_KEY
+                        model_config["anthropic_api_key"] = settings.ANTHROPIC_API_KEY
+            elif scan.model_type == "openai":
+                if not model_config.get("api_key") and not model_config.get("openai_api_key"):
+                    if settings.OPENAI_API_KEY:
+                        model_config["api_key"] = settings.OPENAI_API_KEY
+                        model_config["openai_api_key"] = settings.OPENAI_API_KEY
+            elif scan.model_type == "huggingface":
+                if not model_config.get("api_key") and not model_config.get("huggingface_api_key"):
+                    if settings.HUGGINGFACE_API_KEY:
+                        model_config["api_key"] = settings.HUGGINGFACE_API_KEY
+                        model_config["huggingface_api_key"] = settings.HUGGINGFACE_API_KEY
+            
             # Validate and set model with better error handling
             try:
                 scanner.set_model(
                     model_name=scan.model_name,
                     model_type=scan.model_type,
-                    model_config=scan.model_config or {},
+                    model_config=model_config,
                 )
             except ValueError as model_error:
                 # Model validation/initialization error
@@ -265,11 +286,24 @@ class ScanOrchestrator:
                 total_probes = len(probe_names)
                 completed = 0
 
+                # Merge API keys from settings if not provided
+                model_config = scan.model_config.copy() if scan.model_config else {}
+                if scan.model_type == "anthropic":
+                    if not model_config.get("api_key") and not model_config.get("anthropic_api_key"):
+                        if settings.ANTHROPIC_API_KEY:
+                            model_config["api_key"] = settings.ANTHROPIC_API_KEY
+                            model_config["anthropic_api_key"] = settings.ANTHROPIC_API_KEY
+                elif scan.model_type == "openai":
+                    if not model_config.get("api_key") and not model_config.get("openai_api_key"):
+                        if settings.OPENAI_API_KEY:
+                            model_config["api_key"] = settings.OPENAI_API_KEY
+                            model_config["openai_api_key"] = settings.OPENAI_API_KEY
+                
                 results = await ext.run_multiple_probes(
                     probe_names=probe_names,
                     model_name=scan.model_name,
                     model_type=scan.model_type,
-                    model_config=scan.model_config or {},
+                    model_config=model_config,
                 )
 
                 for probe_result in results:
