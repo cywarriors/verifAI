@@ -21,7 +21,7 @@ import {
   Binary
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import client from '../api/client';
+import client, { scansAPI } from '../api/client';
 
 // Counterfit Attack Frameworks
 const ATTACK_FRAMEWORKS = [
@@ -90,8 +90,8 @@ export default function CounterfitScan() {
   // Create scan mutation
   const createScanMutation = useMutation({
     mutationFn: async (scanData) => {
-      const response = await client.post('/counterfit/scan', scanData);
-      return response.data;
+      const data = await scansAPI.create(scanData);
+      return data;
     },
     onSuccess: (data) => {
       toast.success(`Counterfit scan "${data.name}" started!`);
@@ -111,8 +111,8 @@ export default function CounterfitScan() {
     queryKey: ['counterfitStatus', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/counterfit/status/${activeScanId}`);
-      return response.data;
+      const data = await scansAPI.get(activeScanId);
+      return data;
     },
     refetchInterval: activeScanId ? 3000 : false,
     enabled: !!activeScanId,
@@ -123,7 +123,7 @@ export default function CounterfitScan() {
     queryKey: ['counterfitResults', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/counterfit/results/${activeScanId}`);
+      const response = await client.get(`/scans/${activeScanId}/vulnerabilities`);
       return response.data;
     },
     refetchInterval: scanStatus?.status !== 'COMPLETED' && scanStatus?.status !== 'FAILED' ? 5000 : false,
@@ -168,12 +168,13 @@ export default function CounterfitScan() {
     const scanData = {
       name: scanName,
       description: scanDescription,
-      target_type: targetType,
-      target_endpoint: targetEndpoint,
-      target_credentials: targetCredentials,
-      attack_framework: selectedFramework,
-      attacks: selectedAttacks,
-      config: {
+      model_type: targetType,
+      model_name: targetEndpoint,
+      scanner_type: 'counterfit',
+      llm_config: {
+        api_key: targetCredentials,
+        attack_framework: selectedFramework,
+        attacks: selectedAttacks,
         max_queries: maxQueries,
         confidence_threshold: confidenceThreshold,
       },
@@ -426,30 +427,22 @@ export default function CounterfitScan() {
               )}
 
               {/* Results Summary */}
-              {scanResults && (
+              {Array.isArray(scanResults) && (
                 <>
                   <div className="metrics-grid">
                     <div className="metric-card">
-                      <span className="metric-value">{scanResults.total_attacks || 0}</span>
-                      <span className="metric-label">Attacks Run</span>
+                      <span className="metric-value">{scanResults.length || 0}</span>
+                      <span className="metric-label">Vulnerabilities</span>
                     </div>
                     <div className="metric-card success">
-                      <span className="metric-value">{scanResults.successful_attacks || 0}</span>
-                      <span className="metric-label">Successful</span>
-                    </div>
-                    <div className="metric-card">
-                      <span className="metric-value">{scanResults.queries_used || 0}</span>
-                      <span className="metric-label">Queries Used</span>
-                    </div>
-                    <div className="metric-card">
-                      <span className="metric-value">{((scanResults.success_rate || 0) * 100).toFixed(1)}%</span>
-                      <span className="metric-label">Success Rate</span>
+                      <span className="metric-value">{scanResults.filter(v => v.severity === 'critical' || v.severity === 'high').length || 0}</span>
+                      <span className="metric-label">High Risk</span>
                     </div>
                   </div>
 
                   <div className="vulnerabilities-list">
-                    {scanResults.findings?.map((finding, idx) => {
-                      const severity = SEVERITY_CONFIG[finding.severity?.toLowerCase()] || SEVERITY_CONFIG.medium;
+                    {scanResults.map((finding, idx) => {
+                      const severity = SEVERITY_CONFIG[(finding.severity || 'medium').toLowerCase()] || SEVERITY_CONFIG.medium;
                       const SeverityIcon = severity.icon;
                       return (
                         <div key={idx} className="vulnerability-card" style={{ '--severity-color': severity.color, '--severity-bg': severity.bg }}>
@@ -458,27 +451,26 @@ export default function CounterfitScan() {
                               <SeverityIcon size={18} />
                               <span>{finding.severity}</span>
                             </div>
-                            <span className="vuln-category">{finding.attack_type}</span>
+                            <span className="vuln-category">{finding.probe_category}</span>
                           </div>
                           <h4 className="vuln-title">{finding.title}</h4>
                           <p className="vuln-description">{finding.description}</p>
-                          {finding.example && (
+                          {finding.evidence && (
                             <div className="vuln-example">
-                              <strong>Example:</strong>
-                              <code>{finding.example}</code>
+                              <strong>Evidence:</strong>
+                              <code>{finding.evidence}</code>
                             </div>
                           )}
-                          {finding.confidence_drop && (
+                          {finding.remediation && (
                             <div className="vuln-metrics">
-                              <span>Confidence Drop: {(finding.confidence_drop * 100).toFixed(1)}%</span>
-                              <span>Queries: {finding.queries_used}</span>
+                              <strong>Remediation:</strong> {finding.remediation}
                             </div>
                           )}
                         </div>
                       );
                     })}
 
-                    {scanResults.findings?.length === 0 && (
+                    {scanResults.length === 0 && (
                       <div className="no-vulnerabilities">
                         <CheckCircle size={48} />
                         <h3>Model is Robust</h3>

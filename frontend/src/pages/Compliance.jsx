@@ -406,10 +406,12 @@ export default function Compliance() {
   const [expandedReq, setExpandedReq] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
 
-  const { data: scans } = useQuery({
-    queryKey: ['scans', 'completed'],
-    queryFn: () => scansAPI.list({ status_filter: 'completed' }),
+  const { data: scans, isLoading: scansLoading, refetch: refetchScans } = useQuery({
+    queryKey: ['scans', 'all'],
+    queryFn: () => scansAPI.list(),
   });
+
+  const completedScans = (scans || []).filter(s => s.status === 'completed');
 
   const [selectedScan, setSelectedScan] = useState(scanId || '');
 
@@ -507,11 +509,14 @@ export default function Compliance() {
               value={selectedScan}
               onChange={(e) => setSelectedScan(e.target.value)}
               className="scan-select"
+              disabled={scansLoading}
             >
-              <option value="">Select a completed scan...</option>
-              {scans?.map(scan => (
+              <option value="">
+                {scansLoading ? 'Loading scans...' : completedScans.length === 0 ? 'No completed scans available' : 'Select a completed scan...'}
+              </option>
+              {completedScans.map(scan => (
                 <option key={scan.id} value={scan.id}>
-                  {scan.name} — {scan.model_name}
+                  {scan.name} — {scan.model_name}{scan.completed_at ? ` (${new Date(scan.completed_at).toLocaleDateString()})` : ''}
                 </option>
               ))}
             </select>
@@ -528,6 +533,11 @@ export default function Compliance() {
                 <span>Export Report</span>
               </button>
             </>
+          )}
+          {!selectedScan && (
+            <button className="action-btn refresh" onClick={() => refetchScans()} title="Reload Scans">
+              <RefreshCw size={18} />
+            </button>
           )}
         </div>
       </div>
@@ -859,14 +869,15 @@ export default function Compliance() {
         .scan-select {
           width: 100%;
           padding: 0.75rem 2.5rem 0.75rem 1rem;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 10px;
           font-size: 0.9375rem;
-          color: #fff;
+          color: #ffffff;
           appearance: none;
           cursor: pointer;
           transition: all 0.15s ease;
+          color-scheme: dark; /* hint dark dropdown theme */
         }
         
         .scan-select:hover {
@@ -876,6 +887,12 @@ export default function Compliance() {
         .scan-select:focus {
           outline: none;
           border-color: rgba(6, 182, 212, 0.5);
+          box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+        }
+
+        .scan-select option {
+          color: #e2e8f0;
+          background: #0f172a; /* dark option background */
         }
         
         .select-chevron {
@@ -883,7 +900,7 @@ export default function Compliance() {
           right: 1rem;
           top: 50%;
           transform: translateY(-50%);
-          color: #64748b;
+          color: #94a3b8; /* light slate for dark select */
           pointer-events: none;
         }
         

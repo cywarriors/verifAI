@@ -202,17 +202,15 @@ async def list_garak_probes(
         except Exception as e:
             logger.warning(f"Tag-based probe grouping unavailable, falling back: {e}")
         
-        # Fallback: use our scanner name list and derive category from name prefix
-        from scanner.garak import GarakScanner
-        gs = GarakScanner()
-        names = gs.list_probes()
-        
-        for probe_name in names:
-            parts = probe_name.split(".")
-            category = parts[0] if len(parts) > 1 else "other"
-            organized.setdefault(category, []).append(probe_name)
-        
-        return organized
+        # Fallback: return a static set of common Garak probes organized by tag
+        common_probes = {
+            "injection": ["promptinject", "goodside"],
+            "jailbreak": ["dan"],
+            "obfuscation": ["leetspeak", "encoding"],
+            "safety": ["knownbadsignatures"],
+            "other": [],
+        }
+        return common_probes
     except Exception as e:
         logger.error(f"Failed to list Garak probes: {e}")
         raise HTTPException(
@@ -231,7 +229,7 @@ async def get_garak_scan_status(
     scan = db.query(Scan).filter(
         Scan.id == scan_id,
         Scan.created_by == current_user.id,
-        Scan.scanner_type == "garak"
+        Scan.scanner_type == ScannerType.GARAK
     ).first()
     
     if not scan:
@@ -274,15 +272,15 @@ async def get_garak_scan_results(
     ).order_by(Vulnerability.severity.desc()).all()
     
     # Group by severity
-    by_severity = {}
+    by_severity: Dict[str, List[Dict[str, Any]]] = {}
     for vuln in vulnerabilities:
-        severity = vuln.severity or "unknown"
-        if severity not in by_severity:
-            by_severity[severity] = []
-        by_severity[severity].append({
+        severity_key = vuln.severity.value if hasattr(vuln.severity, "value") else (vuln.severity or "unknown")
+        if severity_key not in by_severity:
+            by_severity[severity_key] = []
+        by_severity[severity_key].append({
             "id": vuln.id,
             "probe": vuln.probe_name,
-            "message": vuln.vulnerability_type,
+            "message": vuln.description,
             "evidence": vuln.evidence,
             "remediation": vuln.remediation,
         })
@@ -299,8 +297,8 @@ async def get_garak_scan_results(
             {
                 "id": v.id,
                 "probe": v.probe_name,
-                "severity": v.severity,
-                "type": v.vulnerability_type,
+                "severity": (v.severity.value if hasattr(v.severity, "value") else v.severity),
+                "type": v.title,
                 "evidence": v.evidence,
                 "remediation": v.remediation,
             }
