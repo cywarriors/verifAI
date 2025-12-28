@@ -59,6 +59,22 @@ Access the application:
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/api/v1/docs
 
+## 🧭 UI Navigation
+
+The sidebar menu in the frontend is organized for quick access:
+
+- Dashboard
+- Scans
+- Compliance
+- Garak Scanner
+- LLMTopTen Scanner
+- AgentTopTen Scanner
+- ART Scanner
+- Counterfit Scanner
+- Settings
+
+Compliance now appears immediately after Scans, and scanner labels are consistent across the app.
+
 ## 🔍 Available Scanners
 
 The platform supports multiple security scanning engines:
@@ -96,6 +112,21 @@ Each scanner provides detailed vulnerability reports with:
 - Prevention and mitigation strategies
 - Risk scoring and severity assessment
 - Compliance framework mapping
+
+## 🔑 API Keys
+
+Most scanners require a model/API key depending on the selected provider:
+
+- OpenAI: `sk-...` (env: `OPENAI_API_KEY`)
+- Anthropic: `sk-...` (env: `ANTHROPIC_API_KEY`)
+- HuggingFace: `hf_...` or `HF_TOKEN` (env: `HUGGINGFACE_API_KEY` or `HF_TOKEN`)
+
+You can enter keys directly in the scan forms (they are handled in-memory) or set them via environment variables for backend execution. For UI testing, you may use placeholders (non-functional) like:
+
+- `sk-test-1234567890abcdef1234567890abcd`
+- `hf_test_1234567890abcdef1234567890abcd`
+
+Note: placeholder keys will not authenticate. Choose HuggingFace local mode where supported if you want to test UI flows without calling external APIs.
 
 ## 📋 Features
 

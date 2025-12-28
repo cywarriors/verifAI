@@ -26,7 +26,7 @@ const GarakScan = () => {
   const { data: probes, isLoading: probesLoading, error: probesError } = useQuery({
     queryKey: ['garakProbes'],
     queryFn: async () => {
-      const response = await client.get('/garak/probes');
+      const response = await client.get('/scans/garak/probes');
       return response.data;
     },
     staleTime: 1000 * 60 * 5,
@@ -35,7 +35,7 @@ const GarakScan = () => {
   // Create Garak scan mutation
   const createScanMutation = useMutation({
     mutationFn: async (scanData) => {
-      const response = await client.post('/garak/scan', scanData);
+      const response = await client.post('/scans/garak/scan', scanData);
       return response.data;
     },
     onSuccess: (data) => {
@@ -56,7 +56,7 @@ const GarakScan = () => {
     queryKey: ['garakScanStatus', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/garak/status/${activeScanId}`);
+      const response = await client.get(`/scans/garak/status/${activeScanId}`);
       return response.data;
     },
     refetchInterval: activeScanId ? 3000 : false,
@@ -68,11 +68,11 @@ const GarakScan = () => {
     queryKey: ['garakScanResults', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/garak/results/${activeScanId}`);
+      const response = await client.get(`/scans/garak/results/${activeScanId}`);
       return response.data;
     },
-    refetchInterval: scanStatus?.status !== 'COMPLETED' && scanStatus?.status !== 'FAILED' ? 5000 : false,
-    enabled: !!activeScanId && scanStatus?.status === 'COMPLETED',
+    refetchInterval: scanStatus?.status !== 'completed' && scanStatus?.status !== 'failed' ? 5000 : false,
+    enabled: !!activeScanId && scanStatus?.status === 'completed',
   });
 
   const handleSubmitScan = async (e) => {
@@ -399,7 +399,7 @@ const GarakScan = () => {
                 </div>
 
                 {/* Vulnerabilities */}
-                {scanStatus?.status === 'COMPLETED' && (
+                {scanStatus?.status === 'completed' && (
                   <div className="vulns-section">
                     <h3 className="results-section-title">Vulnerabilities Found</h3>
                     {resultsLoading ? (

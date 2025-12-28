@@ -21,7 +21,7 @@ import {
   Move
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import client from '../api/client';
+import client, { scansAPI } from '../api/client';
 
 // ART Attack Categories
 const ART_ATTACK_CATEGORIES = [
@@ -96,8 +96,8 @@ export default function ARTScan() {
   // Create scan mutation
   const createScanMutation = useMutation({
     mutationFn: async (scanData) => {
-      const response = await client.post('/art/scan', scanData);
-      return response.data;
+      const data = await scansAPI.create(scanData);
+      return data;
     },
     onSuccess: (data) => {
       toast.success(`ART scan "${data.name}" started!`);
@@ -117,8 +117,8 @@ export default function ARTScan() {
     queryKey: ['artStatus', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/art/status/${activeScanId}`);
-      return response.data;
+      const data = await scansAPI.get(activeScanId);
+      return data;
     },
     refetchInterval: activeScanId ? 3000 : false,
     enabled: !!activeScanId,
@@ -129,7 +129,7 @@ export default function ARTScan() {
     queryKey: ['artResults', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/art/results/${activeScanId}`);
+      const response = await client.get(`/scans/${activeScanId}/vulnerabilities`);
       return response.data;
     },
     refetchInterval: scanStatus?.status !== 'COMPLETED' && scanStatus?.status !== 'FAILED' ? 5000 : false,
@@ -175,12 +175,13 @@ export default function ARTScan() {
       name: scanName,
       description: scanDescription,
       model_type: modelType,
-      model_path: modelPath,
-      dataset_path: datasetPath,
-      attack_category: selectedCategory,
-      attacks: selectedAttacks,
-      defense: selectedDefense,
-      config: {
+      model_name: modelPath,
+      scanner_type: 'art',
+      llm_config: {
+        dataset_path: datasetPath,
+        attack_category: selectedCategory,
+        attacks: selectedAttacks,
+        defense: selectedDefense,
         epsilon: epsilon,
         max_iterations: maxIterations,
       },
@@ -456,30 +457,22 @@ export default function ARTScan() {
               )}
 
               {/* Results Summary */}
-              {scanResults && (
+              {Array.isArray(scanResults) && (
                 <>
                   <div className="metrics-grid">
                     <div className="metric-card">
-                      <span className="metric-value">{scanResults.clean_accuracy?.toFixed(1) || 'N/A'}%</span>
-                      <span className="metric-label">Clean Accuracy</span>
+                      <span className="metric-value">{scanResults.length || 0}</span>
+                      <span className="metric-label">Vulnerabilities</span>
                     </div>
                     <div className="metric-card adversarial">
-                      <span className="metric-value">{scanResults.adversarial_accuracy?.toFixed(1) || 'N/A'}%</span>
-                      <span className="metric-label">Adv. Accuracy</span>
-                    </div>
-                    <div className="metric-card">
-                      <span className="metric-value">{scanResults.robustness_score?.toFixed(1) || 'N/A'}%</span>
-                      <span className="metric-label">Robustness</span>
-                    </div>
-                    <div className="metric-card">
-                      <span className="metric-value">{scanResults.attack_success_rate?.toFixed(1) || 'N/A'}%</span>
-                      <span className="metric-label">Attack Success</span>
+                      <span className="metric-value">{scanResults.filter(v => v.severity === 'critical' || v.severity === 'high').length || 0}</span>
+                      <span className="metric-label">High Risk</span>
                     </div>
                   </div>
 
                   <div className="vulnerabilities-list">
-                    {scanResults.findings?.map((finding, idx) => {
-                      const severity = SEVERITY_CONFIG[finding.severity?.toLowerCase()] || SEVERITY_CONFIG.medium;
+                    {scanResults.map((finding, idx) => {
+                      const severity = SEVERITY_CONFIG[(finding.severity || 'medium').toLowerCase()] || SEVERITY_CONFIG.medium;
                       const SeverityIcon = severity.icon;
                       return (
                         <div key={idx} className="vulnerability-card" style={{ '--severity-color': severity.color, '--severity-bg': severity.bg }}>
@@ -488,21 +481,25 @@ export default function ARTScan() {
                               <SeverityIcon size={18} />
                               <span>{finding.severity}</span>
                             </div>
-                            <span className="vuln-category">{finding.attack_type}</span>
+                            <span className="vuln-category">{finding.probe_category}</span>
                           </div>
                           <h4 className="vuln-title">{finding.title}</h4>
                           <p className="vuln-description">{finding.description}</p>
-                          {finding.perturbation_norm && (
+                          {finding.evidence && (
                             <div className="vuln-metrics">
-                              <span>L∞ Norm: {finding.perturbation_norm.toFixed(4)}</span>
-                              <span>Success Rate: {finding.success_rate?.toFixed(1)}%</span>
+                              <strong>Evidence:</strong> {finding.evidence}
+                            </div>
+                          )}
+                          {finding.remediation && (
+                            <div className="vuln-metrics">
+                              <strong>Remediation:</strong> {finding.remediation}
                             </div>
                           )}
                         </div>
                       );
                     })}
 
-                    {scanResults.findings?.length === 0 && (
+                    {scanResults.length === 0 && (
                       <div className="no-vulnerabilities">
                         <CheckCircle size={48} />
                         <h3>Model is Robust</h3>

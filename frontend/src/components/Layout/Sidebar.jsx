@@ -21,12 +21,12 @@ import {
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/scans', icon: Scan, label: 'Scans' },
-  { path: '/scans/garak', icon: Zap, label: 'Garak Scanner' },
-  { path: '/scans/llmtopten', icon: ShieldAlert, label: 'LLM Top 10' },
-  { path: '/scans/agenttopten', icon: Bot, label: 'Agent Top 10' },
-  { path: '/scans/art', icon: Crosshair, label: 'ART Scanner' },
-  { path: '/scans/counterfit', icon: Swords, label: 'Counterfit' },
   { path: '/compliance', icon: FileCheck, label: 'Compliance' },
+  { path: '/scans/garak', icon: Zap, label: 'Garak Scanner' },
+  { path: '/scans/llmtopten', icon: ShieldAlert, label: 'LLMTopTen Scanner' },
+  { path: '/scans/agenttopten', icon: Bot, label: 'AgentTopTen Scanner' },
+  { path: '/scans/art', icon: Crosshair, label: 'ART Scanner' },
+  { path: '/scans/counterfit', icon: Swords, label: 'Counterfit Scanner' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 

@@ -22,7 +22,7 @@ import {
   Layers
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import client from '../api/client';
+import client, { scansAPI } from '../api/client';
 
 // OWASP LLM Top 10 Categories
 const LLM_TOP_10_CATEGORIES = [
@@ -64,8 +64,8 @@ export default function LLMTopTenScan() {
   // Create scan mutation
   const createScanMutation = useMutation({
     mutationFn: async (scanData) => {
-      const response = await client.post('/llmtopten/scan', scanData);
-      return response.data;
+      const data = await scansAPI.create(scanData);
+      return data;
     },
     onSuccess: (data) => {
       toast.success(`LLM Top 10 scan "${data.name}" started!`);
@@ -85,8 +85,8 @@ export default function LLMTopTenScan() {
     queryKey: ['llmtoptenStatus', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/llmtopten/status/${activeScanId}`);
-      return response.data;
+      const data = await scansAPI.get(activeScanId);
+      return data;
     },
     refetchInterval: activeScanId ? 3000 : false,
     enabled: !!activeScanId,
@@ -97,7 +97,7 @@ export default function LLMTopTenScan() {
     queryKey: ['llmtoptenResults', activeScanId],
     queryFn: async () => {
       if (!activeScanId) return null;
-      const response = await client.get(`/llmtopten/results/${activeScanId}`);
+      const response = await client.get(`/scans/${activeScanId}/vulnerabilities`);
       return response.data;
     },
     refetchInterval: scanStatus?.status !== 'COMPLETED' && scanStatus?.status !== 'FAILED' ? 5000 : false,
@@ -143,7 +143,7 @@ export default function LLMTopTenScan() {
       description: scanDescription,
       model_type: modelType,
       model_name: modelName,
-      categories: selectedCategories,
+      scanner_type: 'llmtopten',
       llm_config: {
         api_key: apiKey,
       },
@@ -355,10 +355,10 @@ export default function LLMTopTenScan() {
               )}
 
               {/* Results */}
-              {scanResults && (
+              {Array.isArray(scanResults) && (
                 <div className="vulnerabilities-list">
-                  {scanResults.findings?.map((finding, idx) => {
-                    const severity = SEVERITY_CONFIG[finding.severity?.toLowerCase()] || SEVERITY_CONFIG.medium;
+                  {scanResults.map((finding, idx) => {
+                    const severity = SEVERITY_CONFIG[(finding.severity || 'medium').toLowerCase()] || SEVERITY_CONFIG.medium;
                     const SeverityIcon = severity.icon;
                     return (
                       <div key={idx} className="vulnerability-card" style={{ '--severity-color': severity.color, '--severity-bg': severity.bg }}>
@@ -367,20 +367,20 @@ export default function LLMTopTenScan() {
                             <SeverityIcon size={18} />
                             <span>{finding.severity}</span>
                           </div>
-                          <span className="vuln-category">{finding.category}</span>
+                          <span className="vuln-category">{finding.probe_category}</span>
                         </div>
                         <h4 className="vuln-title">{finding.title}</h4>
                         <p className="vuln-description">{finding.description}</p>
-                        {finding.recommendation && (
+                        {finding.remediation && (
                           <div className="vuln-recommendation">
-                            <strong>Recommendation:</strong> {finding.recommendation}
+                            <strong>Recommendation:</strong> {finding.remediation}
                           </div>
                         )}
                       </div>
                     );
                   })}
 
-                  {scanResults.findings?.length === 0 && (
+                  {scanResults.length === 0 && (
                     <div className="no-vulnerabilities">
                       <CheckCircle size={48} />
                       <h3>No Vulnerabilities Found</h3>
